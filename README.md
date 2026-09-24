@@ -2,6 +2,24 @@
 
 > **Hệ thống phiên dịch cuộc họp trực tiếp đa ngôn ngữ, phụ đề song ngữ Realtime & Tự động tóm tắt cuộc họp bằng AI (React + Vite + Tailwind CSS + Node.js + WebSockets + OpenAI)**
 
+## 📸 Giao Diện Người Dùng
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="public/imageUI/image1.png" alt="UI 1" width="420" /></td>
+      <td><img src="public/imageUI/image2.png" alt="UI 2" width="420" /></td>
+    </tr>
+    <tr>
+      <td><img src="public/imageUI/image3.png" alt="UI 3" width="420" /></td>
+      <td><img src="public/imageUI/image4.png" alt="UI 4" width="420" /></td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center"><img src="public/imageUI/image5.png" alt="UI 5" width="840" /></td>
+    </tr>
+  </table>
+</div>
+
 ---
 
 ## 🌟 4 Chức Năng Cốt Lõi
