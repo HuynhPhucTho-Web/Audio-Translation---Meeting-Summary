@@ -1,0 +1,27 @@
+/* LiveSubtitle.css */
+.subtitle-container {
+  scroll-behavior: smooth;
+}
+
+.subtitle-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subtitle-card:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background-color: #818cf8;
+  vertical-align: middle;
+  margin-left: 3px;
+  animation: blink 0.8s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}

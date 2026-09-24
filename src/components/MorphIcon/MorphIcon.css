@@ -1,0 +1,82 @@
+/* MorphIcon.css - Inspired by Morphicons.com physics & spring curves */
+
+.morph-icon {
+  display: inline-block;
+  vertical-align: middle;
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), stroke 0.25s ease, opacity 0.2s ease;
+}
+
+.morph-spring:active {
+  transform: scale(0.88);
+}
+
+/* Play -> Pause morph */
+.morph-play-poly {
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
+}
+
+.morph-pause-bars rect {
+  animation: morphPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes morphPopIn {
+  0% {
+    transform: scaleY(0.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Mic -> Square morph */
+.morph-rect {
+  animation: morphSquareIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
+}
+
+@keyframes morphSquareIn {
+  0% {
+    transform: scale(0.6) rotate(-15deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Checkmark morph animation */
+.morph-checkmark-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: morphDrawCheck 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes morphDrawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Sound wave animations on volume */
+.is-volume:hover .morph-wave-1 {
+  animation: soundPulse1 0.8s ease-in-out infinite alternate;
+}
+
+.is-volume:hover .morph-wave-2 {
+  animation: soundPulse2 0.8s ease-in-out infinite alternate 0.15s;
+}
+
+@keyframes soundPulse1 {
+  0% { opacity: 0.4; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes soundPulse2 {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
