@@ -41,6 +41,19 @@ export class TranscriptionService {
     try {
       await fs.promises.writeFile(tempFilePath, audioBuffer);
 
+      // Diagnostic: log basic file info to help debug "could not process file" errors
+      try {
+        const stats = await fs.promises.stat(tempFilePath);
+        const fd = await fs.promises.open(tempFilePath, 'r');
+        const header = Buffer.alloc(12);
+        await fd.read(header, 0, 12, 0);
+        await fd.close();
+        console.log('[Transcription] Wrote temp audio file:', tempFilePath, `size=${stats.size}`);
+        console.log('[Transcription] File header (hex):', header.toString('hex'));
+      } catch (diagErr) {
+        console.warn('[Transcription] Could not read temp file diagnostics:', diagErr?.message || diagErr);
+      }
+
       // 1. Primary: Groq Whisper LPU (~150ms-300ms, ultra-fast, zero connection drops)
       const groqKey = process.env.GROQ_API_KEY || this.groqKey || DEFAULT_GROQ_KEY;
       if (groqKey) {
@@ -48,7 +61,8 @@ export class TranscriptionService {
           const groqClient = new OpenAI({
             apiKey: groqKey,
             baseURL: 'https://api.groq.com/openai/v1',
-            timeout: 6000,
+            // Allow more time for uploads to be accepted by the Groq endpoint
+            timeout: 15000,
           });
 
           const transcription = await groqClient.audio.transcriptions.create({
@@ -67,7 +81,14 @@ export class TranscriptionService {
             };
           }
         } catch (groqError) {
-          console.warn('[Transcription] Groq Whisper error, trying Gemini fallback:', groqError?.message || groqError);
+          // Better diagnostic logging to capture response body/status when available
+          try {
+            const status = groqError?.response?.status || groqError?.status;
+            const body = groqError?.response?.data || groqError?.response?.body || groqError?.body;
+            console.warn('[Transcription] Groq Whisper error, status:', status, 'body:', body);
+          } catch (e) {
+            console.warn('[Transcription] Groq Whisper error (no response body):', groqError?.message || groqError);
+          }
         }
       }
 
@@ -127,7 +148,13 @@ export class TranscriptionService {
             };
           }
         } catch (openaiError) {
-          console.warn('[Transcription] OpenAI Whisper Error:', openaiError?.message || openaiError);
+          try {
+            const status = openaiError?.response?.status || openaiError?.status;
+            const body = openaiError?.response?.data || openaiError?.response?.body || openaiError?.body;
+            console.warn('[Transcription] OpenAI Whisper Error, status:', status, 'body:', body);
+          } catch (e) {
+            console.warn('[Transcription] OpenAI Whisper Error:', openaiError?.message || openaiError);
+          }
         }
       }
 

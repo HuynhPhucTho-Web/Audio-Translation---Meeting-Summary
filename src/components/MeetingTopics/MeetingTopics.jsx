@@ -5,9 +5,11 @@ import { useMeetingStore } from '../../store/meetingStore';
 export default function MeetingTopics({ topics = [] }) {
   const { t } = useMeetingStore();
   if (!topics || topics.length === 0) {
+    const label = t('summary.noTopics');
+    const display = (!label || label === 'summary.noTopics') ? 'Chưa có chủ đề nào được trích xuất.' : label;
     return (
       <div className="text-xs text-slate-400 italic py-1">
-        {t('summary.noTopics') || 'Chưa có chủ đề nào được trích xuất.'}
+        {display}
       </div>
     );
   }

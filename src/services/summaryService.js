@@ -23,9 +23,27 @@ class SummaryService {
     const state = useMeetingStore.getState();
     const settings = state.settings || {};
     const provider = settings.aiProvider || 'groq';
-    const groqKey = settings.groqApiKey || process.env.GROQ_API_KEY || '';
-    const geminiKey = settings.geminiApiKey || process.env.GEMINI_API_KEY || '';
-    const openAiKey = customApiKey || settings.apiKey || process.env.OPENAI_API_KEY || '';
+    // Resolve environment keys safely in the browser (avoid direct `process.env` access)
+    let _env = {};
+    try {
+      if (import.meta && import.meta.env) {
+        _env = import.meta.env;
+      }
+    } catch (e) {
+      // import.meta may not be supported or accessible in some runtimes
+    }
+
+    try {
+      if ((!_env || Object.keys(_env).length === 0) && typeof process !== 'undefined' && process.env) {
+        _env = process.env;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const groqKey = settings.groqApiKey || _env.VITE_GROQ_API_KEY || _env.GROQ_API_KEY || '';
+    const geminiKey = settings.geminiApiKey || _env.VITE_GEMINI_API_KEY || _env.GEMINI_API_KEY || '';
+    const openAiKey = customApiKey || settings.apiKey || _env.VITE_OPENAI_API_KEY || _env.OPENAI_API_KEY || '';
 
     const transcriptFormatted = transcript
       .map((t) => `[${t.timestamp}] ${t.speaker} (${(t.category || 'statement').toUpperCase()}): ${t.originalText}`)
@@ -53,7 +71,31 @@ Hãy phân tích kỹ nội dung và trả về CHÍNH XÁC một đối tượn
   "summaryText": "Một đoạn văn tóm tắt chi tiết, đầy đủ và súc tích về bối cảnh, các nội dung thảo luận và kết quả đạt được của cuộc họp."
 }`;
 
-    // Cascading provider order based on preference
+    // First, try backend proxy (use server-side API keys). This is preferred
+    // because client-side provider calls require exposing keys to the browser.
+    try {
+      const response = await fetch('/api/summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(openAiKey ? { 'X-OpenAI-Key': openAiKey } : {})
+        },
+        body: JSON.stringify({ transcript, targetLang })
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        // If server returned a heuristic fallback (no participants/topics), continue to try direct providers
+        const looksLikeHeuristic = !json || (!json.summaryText && !json.topics && !json.actionItems);
+        if (!looksLikeHeuristic) return json;
+      } else {
+        console.warn('[Summary] Backend proxy /api/summary returned', response.status);
+      }
+    } catch (e) {
+      console.warn('[Summary] Backend proxy /api/summary failed:', e?.message || e);
+    }
+
+    // Cascading provider order based on preference (client-side providers)
     const providersToTry = [];
     if (provider === 'groq') {
       providersToTry.push('groq', 'gemini', 'openai');
@@ -78,21 +120,6 @@ Hãy phân tích kỹ nội dung và trả về CHÍNH XÁC một đối tượn
         console.warn(`[Summary] Provider ${p} failed:`, err?.message || err);
       }
     }
-
-    // Try backend proxy if direct calls didn't succeed
-    try {
-      const response = await fetch('/api/summary', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(openAiKey ? { 'X-OpenAI-Key': openAiKey } : {})
-        },
-        body: JSON.stringify({ transcript, targetLang })
-      });
-      if (response.ok) {
-        return await response.json();
-      }
-    } catch (e) {}
 
     // Fallback heuristic summary
     return this._generateHeuristicSummary(transcript, targetLang);
@@ -275,16 +302,19 @@ Mọi người nhất trí hướng tới mục tiêu hoàn thiện API và giao
     content += `${summaryText || 'Chưa có tóm tắt'}\n\n`;
 
     content += `--------------------------------------------------------\n`;
-    content += `TRANSCRIPT CHI TIẾT\n`;
+    content += `VĂN BẢN CUỘC HỌP (FULL TRANSCRIPT)\n`;
     content += `--------------------------------------------------------\n`;
-    (transcript || []).forEach((item) => {
-      content += `[${item.timestamp}] ${item.speaker} [${(item.category || '').toUpperCase()}]:\n`;
-      content += `  Gốc: ${item.originalText}\n`;
-      Object.entries(item.translations || {}).forEach(([lang, trans]) => {
-        content += `  Dịch (${lang.toUpperCase()}): ${trans}\n`;
+    if (meetingData.cleanFullText) {
+      content += `${meetingData.cleanFullText}\n\n`;
+    } else {
+      (transcript || []).forEach((item) => {
+        content += `${item.speaker}:\n${item.originalText}\n`;
+        Object.entries(item.translations || {}).forEach(([lang, trans]) => {
+          content += `  ↳ Dịch (${lang.toUpperCase()}): ${trans}\n`;
+        });
+        content += `\n`;
       });
-      content += `\n`;
-    });
+    }
 
     this._downloadFile(content, `Meeting_${this._getTimestampString()}.txt`, 'text/plain;charset=utf-8');
   }
