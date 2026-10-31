@@ -17,6 +17,7 @@ export function setupRealtimeWebSocket(wss) {
       speakerCount: 1,
     };
 
+    let ebmlHeader = null;
     let audioBufferQueue = [];
     let currentSpeakerIndex = 1;
 
@@ -56,12 +57,52 @@ export function setupRealtimeWebSocket(wss) {
 
         // Binary Audio Chunk received
         const audioChunk = Buffer.from(data);
+
+        // Detect and store EBML header if this chunk starts with WebM signature
+        if (
+          audioChunk.length >= 4 &&
+          audioChunk[0] === 0x1a &&
+          audioChunk[1] === 0x45 &&
+          audioChunk[2] === 0xdf &&
+          audioChunk[3] === 0xa3
+        ) {
+          let clusterIdx = -1;
+          for (let i = 0; i < audioChunk.length - 4; i++) {
+            if (
+              audioChunk[i] === 0x1f &&
+              audioChunk[i + 1] === 0x43 &&
+              audioChunk[i + 2] === 0xb6 &&
+              audioChunk[i + 3] === 0x75
+            ) {
+              clusterIdx = i;
+              break;
+            }
+          }
+          if (clusterIdx > 0) {
+            ebmlHeader = audioChunk.subarray(0, clusterIdx);
+          } else {
+            ebmlHeader = audioChunk.subarray(0, Math.min(512, audioChunk.length));
+          }
+        }
+
         audioBufferQueue.push(audioChunk);
 
-        // Process chunk after gathering sufficient audio length (e.g. ~2-3 seconds)
-        if (audioBufferQueue.length >= 1) {
-          const combinedAudio = Buffer.concat(audioBufferQueue);
+        // Process chunk after gathering sufficient audio length (~3 seconds / 3 chunks)
+        if (audioBufferQueue.length >= 3) {
+          let combinedAudio = Buffer.concat(audioBufferQueue);
           audioBufferQueue = [];
+
+          // Prepend header if this segment does not already contain an EBML header
+          const hasEbmlHeader =
+            combinedAudio.length >= 4 &&
+            combinedAudio[0] === 0x1a &&
+            combinedAudio[1] === 0x45 &&
+            combinedAudio[2] === 0xdf &&
+            combinedAudio[3] === 0xa3;
+
+          if (!hasEbmlHeader && ebmlHeader) {
+            combinedAudio = Buffer.concat([ebmlHeader, combinedAudio]);
+          }
 
           // 1. Transcribe audio chunk
           const sttResult = await transcriptionService.transcribeAudioBuffer(combinedAudio);

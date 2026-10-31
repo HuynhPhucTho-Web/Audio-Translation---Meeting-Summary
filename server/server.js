@@ -3,11 +3,15 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
+import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { setupRealtimeWebSocket } from './realtime.js';
 import { TranslationService } from './translation.js';
 import { SummaryService } from './summary.js';
+import { TranscriptionService } from './transcription.js';
 
 dotenv.config();
 
@@ -33,6 +37,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Services
 const translationService = new TranslationService();
 const summaryService = new SummaryService();
+const transcriptionService = new TranscriptionService();
 
 // Health Check API
 app.get('/api/health', (req, res) => {
@@ -51,9 +56,11 @@ app.post('/api/translate', async (req, res) => {
   try {
     const { text, sourceLang, targetLang, targetLanguages } = req.body;
     const clientKey = req.headers['x-openai-key'];
-    if (clientKey) {
-      translationService.setApiKey(clientKey);
-    }
+    if (clientKey) translationService.setApiKey(clientKey);
+    const geminiKey = req.headers['x-gemini-key'];
+    if (geminiKey && translationService.setGeminiKey) translationService.setGeminiKey(geminiKey);
+    const groqKey = req.headers['x-groq-key'];
+    if (groqKey && translationService.setGroqKey) translationService.setGroqKey(groqKey);
 
     const targets = targetLanguages || (targetLang ? [targetLang] : ['vi']);
     const result = await translationService.translateAndClassify(text, targets, sourceLang || 'auto');
@@ -69,14 +76,97 @@ app.post('/api/summary', async (req, res) => {
   try {
     const { transcript, targetLang } = req.body;
     const clientKey = req.headers['x-openai-key'];
-    if (clientKey) {
-      summaryService.setApiKey(clientKey);
-    }
+    if (clientKey) summaryService.setApiKey(clientKey);
+    const geminiKey = req.headers['x-gemini-key'];
+    if (geminiKey) summaryService.setGeminiKey(geminiKey);
+    const groqKey = req.headers['x-groq-key'];
+    if (groqKey) summaryService.setGroqKey(groqKey);
 
     const summaryResult = await summaryService.generateMeetingSummary(transcript, targetLang || 'vi');
     res.json(summaryResult);
   } catch (error) {
-    console.error('Summary endpoint error:', error);
+    console.error('Summary endpoint error, falling back to heuristic:', error);
+    // Graceful fallback prevents HTTP 500 error on client
+    res.json(summaryService._heuristicSummary(req.body.transcript, req.body.targetLang || 'vi'));
+  }
+});
+
+// Audio Transcription API endpoint (File upload / Audio Base64)
+app.post('/api/transcribe', async (req, res) => {
+  try {
+    const { audioBase64, mimeType } = req.body;
+    const clientKey = req.headers['x-openai-key'];
+    if (clientKey) transcriptionService.setApiKey(clientKey);
+    const geminiKey = req.headers['x-gemini-key'];
+    if (geminiKey && transcriptionService.setGeminiKey) transcriptionService.setGeminiKey(geminiKey);
+    const groqKey = req.headers['x-groq-key'];
+    if (groqKey && transcriptionService.setGroqKey) transcriptionService.setGroqKey(groqKey);
+
+    if (!audioBase64) {
+      return res.status(400).json({ error: 'Missing audioBase64 in request body' });
+    }
+
+    const audioBuffer = Buffer.from(audioBase64, 'base64');
+    const result = await transcriptionService.transcribeAudioBuffer(audioBuffer, mimeType || 'audio/webm');
+    res.json(result);
+  } catch (error) {
+    console.error('Transcription endpoint error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Convert Audio to Genuine Standard MP3 endpoint
+app.post('/api/convert-to-mp3', async (req, res) => {
+  try {
+    const { audioBase64, mimeType, filename } = req.body;
+    if (!audioBase64) {
+      return res.status(400).json({ error: 'Missing audioBase64' });
+    }
+
+    const inputExt = mimeType && mimeType.includes('wav') ? 'wav' : 'webm';
+    const tempIn = path.join(
+      os.tmpdir(),
+      `input_${Date.now()}_${Math.random().toString(36).substr(2, 5)}.${inputExt}`
+    );
+    const tempOut = path.join(
+      os.tmpdir(),
+      `output_${Date.now()}_${Math.random().toString(36).substr(2, 5)}.mp3`
+    );
+
+    const inputBuffer = Buffer.from(audioBase64, 'base64');
+    await fs.promises.writeFile(tempIn, inputBuffer);
+
+    const now = new Date();
+    const dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const safeTitle = `Cuoc hop ${dateStr}`;
+
+    const cmd = `ffmpeg -y -i "${tempIn}" -vn -c:a libmp3lame -b:a 192k -metadata title="${safeTitle}" -metadata artist="AI Meeting Translator" "${tempOut}"`;
+
+    exec(cmd, async (err) => {
+      try {
+        if (err || !fs.existsSync(tempOut)) {
+          console.warn('[Server] FFmpeg conversion failed, fallback to original:', err?.message);
+          if (fs.existsSync(tempIn)) await fs.promises.unlink(tempIn).catch(() => {});
+          res.setHeader('Content-Type', 'audio/wav');
+          return res.send(inputBuffer);
+        }
+
+        const mp3Buffer = await fs.promises.readFile(tempOut);
+        await Promise.all([
+          fs.promises.unlink(tempIn).catch(() => {}),
+          fs.promises.unlink(tempOut).catch(() => {}),
+        ]);
+
+        const outName = filename || `Cuoc_Hop_${Date.now()}.mp3`;
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(outName)}"`);
+        res.send(mp3Buffer);
+      } catch (innerErr) {
+        res.status(500).json({ error: innerErr.message });
+      }
+    });
+  } catch (error) {
+    console.error('Convert to MP3 error:', error);
     res.status(500).json({ error: error.message });
   }
 });

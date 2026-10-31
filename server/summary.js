@@ -11,6 +11,8 @@ const DEFAULT_OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 export class SummaryService {
   constructor(apiKey = process.env.OPENAI_API_KEY || '') {
     this.apiKey = apiKey;
+    this.geminiKey = process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
+    this.groqKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY;
     this.openai = apiKey ? new OpenAI({ apiKey }) : null;
   }
 
@@ -18,6 +20,18 @@ export class SummaryService {
     if (key && key !== this.apiKey) {
       this.apiKey = key;
       this.openai = new OpenAI({ apiKey: key });
+    }
+  }
+
+  setGeminiKey(key) {
+    if (key) {
+      this.geminiKey = key;
+    }
+  }
+
+  setGroqKey(key) {
+    if (key) {
+      this.groqKey = key;
     }
   }
 
@@ -32,8 +46,8 @@ export class SummaryService {
       };
     }
 
-    const groqKey = process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
+    const groqKey = this.groqKey || process.env.GROQ_API_KEY || DEFAULT_GROQ_KEY;
+    const geminiKey = this.geminiKey || process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
 
     if (groqKey) {
       try {
@@ -69,28 +83,43 @@ export class SummaryService {
     }
 
     if (geminiKey) {
-      try {
-        const transcriptFormatted = transcript
-          .map((t) => `[${t.timestamp}] ${t.speaker} (${t.category || 'statement'}): ${t.originalText}`)
-          .join('\n');
+      const candidateModels = [
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash'
+      ];
 
-        const prompt = `You are an executive AI meeting assistant. Generate a structured summary in ${targetLang === 'vi' ? 'Vietnamese' : 'English'}.\nTranscript:\n${transcriptFormatted}\nOutput strictly valid JSON with keys: participants, topics, decisions, actionItems (array of {id, task, assignee, deadline, completed}), summaryText.`;
+      const transcriptFormatted = transcript
+        .map((t) => `[${t.timestamp}] ${t.speaker} (${t.category || 'statement'}): ${t.originalText}`)
+        .join('\n');
 
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
-          })
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-          return JSON.parse(txt);
+      const prompt = `You are an executive AI meeting assistant. Generate a structured summary in ${targetLang === 'vi' ? 'Vietnamese' : 'English'}.\nTranscript:\n${transcriptFormatted}\nOutput strictly valid JSON with keys: participants, topics, decisions, actionItems (array of {id, task, assignee, deadline, completed}), summaryText.`;
+
+      for (const model of candidateModels) {
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(geminiKey)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiKey
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
+            })
+          });
+
+          if (resp.ok) {
+            const data = await resp.json();
+            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+            return JSON.parse(txt);
+          }
+          if (resp.status === 404) continue;
+        } catch (err) {
+          console.warn(`[Summary Server] Gemini model ${model} error:`, err?.message);
         }
-      } catch (err) {
-        console.warn('[Summary Server] Gemini error:', err?.message);
       }
     }
 

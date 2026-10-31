@@ -1,4 +1,5 @@
 import { useMeetingStore } from '../store/meetingStore';
+import { generateMeetingDocx } from './docxGenerator';
 
 /**
  * SummaryService handles generating meeting summaries, action items,
@@ -71,14 +72,37 @@ Hãy phân tích kỹ nội dung và trả về CHÍNH XÁC một đối tượn
   "summaryText": "Một đoạn văn tóm tắt chi tiết, đầy đủ và súc tích về bối cảnh, các nội dung thảo luận và kết quả đạt được của cuộc họp."
 }`;
 
-    // First, try backend proxy (use server-side API keys). This is preferred
-    // because client-side provider calls require exposing keys to the browser.
+    // Cascading provider order based on preference
+    const providersToTry = [];
+    if (provider === 'gemini') {
+      providersToTry.push('gemini', 'groq', 'openai');
+    } else if (provider === 'groq') {
+      providersToTry.push('groq', 'gemini', 'openai');
+    } else {
+      providersToTry.push('openai', 'groq', 'gemini');
+    }
+
+    // 1. If user explicitly provided a key in frontend settings for their preferred provider, call directly
+    const preferredKey = provider === 'gemini' ? geminiKey : (provider === 'groq' ? groqKey : openAiKey);
+    if (preferredKey) {
+      try {
+        if (provider === 'gemini') return await this._summarizeWithGemini(prompt, geminiKey);
+        if (provider === 'groq') return await this._summarizeWithGroq(prompt, groqKey);
+        if (provider === 'openai') return await this._summarizeWithOpenAI(prompt, openAiKey);
+      } catch (err) {
+        console.warn(`[Summary] Preferred provider ${provider} failed, attempting backend/alternatives:`, err?.message || err);
+      }
+    }
+
+    // 2. Try backend proxy (/api/summary) with server-side or forwarded keys
     try {
       const response = await fetch('/api/summary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(openAiKey ? { 'X-OpenAI-Key': openAiKey } : {})
+          ...(openAiKey ? { 'X-OpenAI-Key': openAiKey } : {}),
+          ...(geminiKey ? { 'X-Gemini-Key': geminiKey } : {}),
+          ...(groqKey ? { 'X-Groq-Key': groqKey } : {})
         },
         body: JSON.stringify({ transcript, targetLang })
       });
@@ -92,20 +116,12 @@ Hãy phân tích kỹ nội dung và trả về CHÍNH XÁC một đối tượn
         console.warn('[Summary] Backend proxy /api/summary returned', response.status);
       }
     } catch (e) {
-      console.warn('[Summary] Backend proxy /api/summary failed:', e?.message || e);
+      console.warn('[Summary] Backend proxy /api/summary unavailable:', e?.message || e);
     }
 
-    // Cascading provider order based on preference (client-side providers)
-    const providersToTry = [];
-    if (provider === 'groq') {
-      providersToTry.push('groq', 'gemini', 'openai');
-    } else if (provider === 'gemini') {
-      providersToTry.push('gemini', 'groq', 'openai');
-    } else {
-      providersToTry.push('openai', 'groq', 'gemini');
-    }
-
+    // 3. Fallback to other configured client providers
     for (const p of providersToTry) {
+      if (p === provider && preferredKey) continue; // Already tried above
       try {
         if (p === 'groq' && groqKey) {
           return await this._summarizeWithGroq(prompt, groqKey);
@@ -121,7 +137,7 @@ Hãy phân tích kỹ nội dung và trả về CHÍNH XÁC một đối tượn
       }
     }
 
-    // Fallback heuristic summary
+    // 4. Fallback heuristic summary
     return this._generateHeuristicSummary(transcript, targetLang);
   }
 
@@ -151,26 +167,65 @@ Hãy phân tích kỹ nội dung và trả về CHÍNH XÁC một đối tượn
   }
 
   async _summarizeWithGemini(prompt, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: prompt + '\nReturn strictly valid JSON only.' }]
-        }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.2
+    // Robust multi-model fallback supporting both modern Gemini 3.x/2.5 and legacy 1.5
+    const candidateModels = [
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-2.5-flash',
+      'gemini-1.5-flash'
+    ];
+
+    let lastError = null;
+    for (const model of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: prompt + '\nReturn strictly valid JSON only.' }]
+            }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.2
+            }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+          return JSON.parse(text);
         }
-      })
-    });
-    if (!response.ok) {
-      throw new Error(`Gemini HTTP ${response.status}`);
+
+        const errJson = await response.json().catch(() => ({}));
+        const errMsg = errJson?.error?.message || `HTTP ${response.status}`;
+        lastError = new Error(`Gemini [${model}]: ${errMsg}`);
+
+        // If 404 (model retired or unmapped for this key), try next candidate
+        if (response.status === 404) {
+          console.debug(`[Summary] Model ${model} returned 404, trying next model...`);
+          continue;
+        }
+
+        // If auth failure, abort early
+        if (response.status === 401 || response.status === 403) {
+          throw lastError;
+        }
+      } catch (err) {
+        lastError = err;
+        if (err.message && (err.message.includes('API key') || err.message.includes('401') || err.message.includes('403'))) {
+          throw err;
+        }
+      }
     }
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    return JSON.parse(text);
+
+    throw lastError || new Error('All Gemini model endpoints failed');
   }
 
   async _summarizeWithOpenAI(prompt, apiKey) {
@@ -316,49 +371,28 @@ Mọi người nhất trí hướng tới mục tiêu hoàn thiện API và giao
       });
     }
 
-    this._downloadFile(content, `Meeting_${this._getTimestampString()}.txt`, 'text/plain;charset=utf-8');
+    this._downloadFile(content, `Bien_Ban_Cuoc_Hop_${this._getTimestampString()}.txt`, 'text/plain;charset=utf-8');
   }
 
   /**
-   * Export to DOCX / Markdown formatted document
+   * Export to standard Microsoft Word (.docx) OpenXML document
    */
   exportToDocx(meetingData) {
-    const { date, duration, participants, transcript, topics, decisions, actionItems, summaryText } = meetingData;
-
-    let md = `# BIÊN BẢN CUỘC HỌP\n\n`;
-    md += `**Thời gian:** ${date || new Date().toLocaleString()}  \n`;
-    md += `**Thời lượng:** ${this.formatDuration(duration)}  \n`;
-    md += `**Người tham gia:** ${(participants || []).join(', ')}  \n\n`;
-
-    md += `## Chủ đề chính (Key Topics)\n`;
-    (topics || []).forEach((t, i) => {
-      md += `${i + 1}. ${t}\n`;
-    });
-    md += `\n`;
-
-    md += `## Quyết định thống nhất (Decisions)\n`;
-    (decisions || []).forEach((d) => {
-      md += `- ${d}\n`;
-    });
-    md += `\n`;
-
-    md += `## Phân công công việc (Action Items)\n`;
-    (actionItems || []).forEach((a) => {
-      md += `- [${a.completed ? 'x' : ' '}] **${a.assignee || 'Chung'}**: ${a.task} *(Hạn: ${a.deadline || 'Chưa đặt'})*\n`;
-    });
-    md += `\n`;
-
-    md += `## Tóm tắt chi tiết (Summary)\n${summaryText}\n\n`;
-
-    md += `## Chi tiết phụ đề & Hội thoại\n\n`;
-    md += `| Thời gian | Người nói | Thể loại | Bản gốc | Bản dịch |\n`;
-    md += `| :--- | :--- | :--- | :--- | :--- |\n`;
-    (transcript || []).forEach((t) => {
-      const transStr = Object.values(t.translations || {})[0] || '';
-      md += `| ${t.timestamp} | ${t.speaker} | ${t.category} | ${t.originalText.replace(/\|/g, '-')} | ${transStr.replace(/\|/g, '-')} |\n`;
-    });
-
-    this._downloadFile(md, `Meeting_${this._getTimestampString()}.doc`, 'application/msword;charset=utf-8');
+    try {
+      const docxBlob = generateMeetingDocx(meetingData);
+      const url = URL.createObjectURL(docxBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Bien_Ban_Cuoc_Hop_${this._getTimestampString()}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error('Error generating DOCX:', err);
+      // Fallback to text file if any error
+      this.exportToTxt(meetingData);
+    }
   }
 
   /**
@@ -489,7 +523,12 @@ Mọi người nhất trí hướng tới mục tiêu hoàn thiện API và giao
 
   _getTimestampString() {
     const now = new Date();
-    return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    return `${dd}-${mm}-${yyyy}_${hh}h${min}m`;
   }
 
   _downloadFile(content, fileName, mimeType) {

@@ -27,6 +27,14 @@ export class TranscriptionService {
     }
   }
 
+  setGeminiKey(key) {
+    if (key) this.geminiKey = key;
+  }
+
+  setGroqKey(key) {
+    if (key) this.groqKey = key;
+  }
+
   /**
    * Transcribe an audio buffer (webm/mp4/wav)
    */
@@ -69,6 +77,7 @@ export class TranscriptionService {
             file: fs.createReadStream(tempFilePath),
             model: 'whisper-large-v3-turbo',
             response_format: 'verbose_json',
+            prompt: 'Cuộc họp thảo luận công việc bằng tiếng Việt, tiến độ, dự án, kế hoạch, thống nhất, báo cáo, phân công, deadline, giải pháp, KPI, roadmap, bug, fix, deploy, release.',
           });
 
           const text = (transcription.text || '').trim();
@@ -92,40 +101,54 @@ export class TranscriptionService {
         }
       }
 
-      // 2. Secondary Fallback: Google Gemini 1.5 Flash Audio API
-      const geminiKey = process.env.GEMINI_API_KEY || this.geminiKey || DEFAULT_GEMINI_KEY;
+      // 2. Secondary Fallback: Google Gemini Audio API (multi-model fallback)
+      const geminiKey = this.geminiKey || process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
       if (geminiKey) {
-        try {
-          const base64Audio = audioBuffer.toString('base64');
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: 'Transcribe this spoken meeting audio accurately word-for-word. Output strictly valid JSON: {"text": "exact words spoken", "language": "vi"}' },
-                  { inlineData: { mimeType: mimeType || 'audio/webm', data: base64Audio } }
-                ]
-              }],
-              generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
-            })
-          });
+        const candidateModels = [
+          'gemini-3.5-flash-lite',
+          'gemini-3.1-flash-lite',
+          'gemini-3.5-flash',
+          'gemini-2.5-flash',
+          'gemini-1.5-flash'
+        ];
+        const base64Audio = audioBuffer.toString('base64');
 
-          if (resp.ok) {
-            const data = await resp.json();
-            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-            const parsed = JSON.parse(txt);
-            if (parsed.text && parsed.text.trim()) {
-              return {
-                text: parsed.text.trim(),
-                language: parsed.language || 'vi',
-                confidence: 97,
-                duration: 0,
-              };
+        for (const model of candidateModels) {
+          try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(geminiKey)}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': geminiKey
+              },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    { text: 'Transcribe this spoken meeting audio accurately word-for-word. Output strictly valid JSON: {"text": "exact words spoken", "language": "vi"}' },
+                    { inlineData: { mimeType: mimeType || 'audio/webm', data: base64Audio } }
+                  ]
+                }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
+              })
+            });
+
+            if (resp.ok) {
+              const data = await resp.json();
+              const txt = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+              const parsed = JSON.parse(txt);
+              if (parsed.text && parsed.text.trim()) {
+                return {
+                  text: parsed.text.trim(),
+                  language: parsed.language || 'vi',
+                  confidence: 97,
+                  duration: 0,
+                };
+              }
             }
+            if (resp.status === 404) continue;
+          } catch (geminiError) {
+            console.warn(`[Transcription] Gemini model ${model} error:`, geminiError?.message || geminiError);
           }
-        } catch (geminiError) {
-          console.warn('[Transcription] Gemini Audio error, trying OpenAI fallback:', geminiError?.message || geminiError);
         }
       }
 
@@ -136,6 +159,7 @@ export class TranscriptionService {
             file: fs.createReadStream(tempFilePath),
             model: process.env.OPENAI_TRANSCRIPTION_MODEL || 'whisper-1',
             response_format: 'verbose_json',
+            prompt: 'Cuộc họp thảo luận công việc bằng tiếng Việt, tiến độ, dự án, kế hoạch, thống nhất, báo cáo, phân công, deadline, giải pháp.',
           });
 
           const text = (transcription.text || '').trim();

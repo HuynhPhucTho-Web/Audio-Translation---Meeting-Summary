@@ -23,6 +23,14 @@ export class TranslationService {
     }
   }
 
+  setGeminiKey(key) {
+    if (key) this.geminiKey = key;
+  }
+
+  setGroqKey(key) {
+    if (key) this.groqKey = key;
+  }
+
   /**
    * Translate text into specified target languages and classify sentence type
    * @param {string} text 
@@ -95,32 +103,45 @@ Output strictly valid JSON with this format:
       }
     }
 
-    // 2. Secondary: Google Gemini 1.5 Flash
-    const geminiKey = process.env.GEMINI_API_KEY || this.geminiKey || DEFAULT_GEMINI_KEY;
+    // 2. Secondary: Google Gemini Flash (multi-model fallback)
+    const geminiKey = this.geminiKey || process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
     if (geminiKey) {
-      try {
-        const geminiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
-          })
-        });
+      const candidateModels = [
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash'
+      ];
+      for (const model of candidateModels) {
+        try {
+          const geminiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(geminiKey)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiKey
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
+            })
+          });
 
-        if (geminiResp.ok) {
-          const geminiData = await geminiResp.json();
-          const txt = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-          const parsed = JSON.parse(txt);
-          if (parsed.translations && Object.keys(parsed.translations).length > 0) {
-            return {
-              category: parsed.category || 'statement',
-              translations: parsed.translations
-            };
+          if (geminiResp.ok) {
+            const geminiData = await geminiResp.json();
+            const txt = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+            const parsed = JSON.parse(txt);
+            if (parsed.translations && Object.keys(parsed.translations).length > 0) {
+              return {
+                category: parsed.category || 'statement',
+                translations: parsed.translations
+              };
+            }
           }
+          if (geminiResp.status === 404) continue;
+        } catch (geminiErr) {
+          console.warn(`[Translation] Gemini model ${model} error:`, geminiErr?.message || geminiErr);
         }
-      } catch (geminiErr) {
-        console.warn('[Translation] Gemini error, trying Google Translate fallback:', geminiErr?.message || geminiErr);
       }
     }
 
