@@ -4,8 +4,8 @@ import { useMeetingStore } from '../../store/meetingStore';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '../../data/languages';
 import { speechService } from '../../services/speechService';
 
-// Frequently used languages for quick-access sections in dropdowns
-const POPULAR_LANG_CODES = ['vi', 'en', 'zh', 'ja', 'ko', 'fr', 'de', 'es'];
+// Frequently used quick-access languages
+const QUICK_LANG_CODES = ['vi', 'en', 'zh', 'ja', 'ko', 'fr'];
 
 export default function LanguageSelector() {
   const {
@@ -27,7 +27,7 @@ export default function LanguageSelector() {
 
   const [searchSpoken, setSearchSpoken] = useState('');
   const [searchTarget, setSearchTarget] = useState('');
-  const [searchMulti, setSearchMulti] = useState('');
+  const [isSwapped, setIsSwapped] = useState(false);
 
   const spokenRef = useRef(null);
   const targetRef = useRef(null);
@@ -59,7 +59,7 @@ export default function LanguageSelector() {
   // Metadata for current primary target language
   const primaryLangMeta = getLanguageByCode(primaryTargetLanguage);
 
-  // Filtered language lists
+  // Filtered lists
   const filteredSpokenLangs = SUPPORTED_LANGUAGES.filter(
     (lang) =>
       lang.name.toLowerCase().includes(searchSpoken.toLowerCase()) ||
@@ -70,12 +70,6 @@ export default function LanguageSelector() {
     (lang) =>
       lang.name.toLowerCase().includes(searchTarget.toLowerCase()) ||
       lang.code.toLowerCase().includes(searchTarget.toLowerCase())
-  );
-
-  const filteredMultiLangs = SUPPORTED_LANGUAGES.filter(
-    (lang) =>
-      lang.name.toLowerCase().includes(searchMulti.toLowerCase()) ||
-      lang.code.toLowerCase().includes(searchMulti.toLowerCase())
   );
 
   // Handlers
@@ -110,7 +104,11 @@ export default function LanguageSelector() {
   };
 
   const handleSwapLanguages = () => {
-    const currentSpoken = isSpokenAuto ? (detectedLanguage.code !== 'auto' ? detectedLanguage.code : 'vi') : spokenInputLanguage;
+    const currentSpoken = isSpokenAuto
+      ? detectedLanguage.code !== 'auto'
+        ? detectedLanguage.code
+        : 'vi'
+      : spokenInputLanguage;
     const currentTarget = primaryTargetLanguage;
 
     setSpokenInputLanguage(currentTarget);
@@ -125,10 +123,11 @@ export default function LanguageSelector() {
 
     setPrimaryTargetLanguage(currentSpoken);
     speechService.setTargetLanguage(currentSpoken);
+    setIsSwapped(prev => !prev);
   };
 
   const toggleMultiLanguage = (code) => {
-    if (code === primaryTargetLanguage) return; // Cannot toggle primary
+    if (code === primaryTargetLanguage) return; // Cannot disable primary
     if (targetLanguages.includes(code)) {
       removeTargetLanguage(code);
     } else {
@@ -137,8 +136,8 @@ export default function LanguageSelector() {
   };
 
   return (
-    <div className="relative z-30 w-full apple-glass rounded-2xl p-2 sm:px-4 sm:py-2.5 shadow-lg border border-white/10 flex flex-wrap items-center justify-between gap-2.5">
-      {/* LEFT: Spoken Language Dropdown Pill */}
+    <div className="relative z-30 w-full apple-glass rounded-2xl p-2 sm:px-4 sm:py-2.5 shadow-lg border border-white/10 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+      {/* 1. LEFT: Spoken Language Dropdown */}
       <div className="relative" ref={spokenRef}>
         <button
           type="button"
@@ -154,15 +153,15 @@ export default function LanguageSelector() {
           title={t('langSelector.spokenLang')}
         >
           <MorphIcon name="mic" size={14} className={isSpokenOpen ? 'text-white' : 'text-blue-400'} />
-          <span className="text-slate-400 text-[11px] hidden sm:inline">{t('langSelector.spokenLang')}</span>
+          <span className="text-slate-400 text-[11px] hidden md:inline">Nói:</span>
           <span className="text-sm select-none">{spokenLangMeta.flag}</span>
-          <span className="font-semibold">{spokenLangMeta.name}</span>
+          <span className="font-semibold truncate max-w-[110px] sm:max-w-none">{spokenLangMeta.name}</span>
 
-          {/* If Auto mode detected a language, show dynamic pill */}
+          {/* Dynamic Auto-detect indicator */}
           {isSpokenAuto && detectedLanguage.code !== 'auto' && (
-            <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
-              <span className="w-1 h-1 rounded-full bg-blue-400 animate-ping" />
-              <span>{detectedLanguage.flag} {detectedLanguage.confidence || 98}%</span>
+            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
+              <span>{detectedLanguage.flag}</span>
             </span>
           )}
 
@@ -176,86 +175,103 @@ export default function LanguageSelector() {
 
         {/* Spoken Language Dropdown Popover */}
         {isSpokenOpen && (
-          <div className="absolute left-0 mt-2 z-[9999] w-72 max-h-[380px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-2xl shadow-2xl p-2.5 overflow-hidden animate-fadeIn">
+          <div className="absolute left-0 mt-2 z-[9999] w-[320px] sm:w-[360px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-3xl shadow-2xl p-3 overflow-hidden animate-fadeIn">
             {/* Header */}
-            <div className="flex items-center justify-between px-2 py-1 mb-2 border-b border-white/10">
-              <span className="text-[11px] font-bold text-white uppercase tracking-wider">
-                {t('langSelector.spokenLang')}
-              </span>
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
+                <MorphIcon name="mic" size={14} className="text-blue-400" />
+                <span>{t('langSelector.spokenLang')}</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsSpokenOpen(false)}
                 className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
               >
-                <MorphIcon name="x" size={13} />
+                <MorphIcon name="x" size={14} />
               </button>
             </div>
 
+            {/* Quick 1-Click Select Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => handleSelectSpokenLanguage('auto')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
+                  isSpokenAuto
+                    ? 'bg-blue-600 text-white font-semibold'
+                    : 'bg-white/10 hover:bg-white/20 text-slate-300'
+                }`}
+              >
+                <MorphIcon name="sparkles" size={12} />
+                <span>Tự động</span>
+              </button>
+              {QUICK_LANG_CODES.map((code) => {
+                const l = getLanguageByCode(code);
+                const isSel = !isSpokenAuto && spokenInputLanguage === code;
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => handleSelectSpokenLanguage(code)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
+                      isSel
+                        ? 'bg-blue-600 text-white font-semibold'
+                        : 'bg-white/10 hover:bg-white/20 text-slate-300'
+                    }`}
+                  >
+                    <span>{l.flag}</span>
+                    <span>{l.code.toUpperCase()}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Search Input */}
-            <div className="relative mb-2 px-1">
+            <div className="relative mb-2.5">
               <MorphIcon name="search" size={13} className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 autoFocus
-                placeholder={t('langSelector.searchLang')}
+                placeholder="Tìm nhanh ngôn ngữ nói..."
                 value={searchSpoken}
                 onChange={(e) => setSearchSpoken(e.target.value)}
-                className="w-full bg-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-400 border border-white/10 outline-none focus:border-blue-500"
+                className="w-full bg-white/10 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-400 border border-white/10 outline-none focus:border-blue-500"
               />
-            </div>
-
-            {/* Language Options List */}
-            <div className="overflow-y-auto space-y-1 pr-1 flex-1 max-h-[250px]">
-              {/* Auto Detect Option (Always on top unless searching) */}
-              {!searchSpoken && (
+              {searchSpoken && (
                 <button
                   type="button"
-                  onClick={() => handleSelectSpokenLanguage('auto')}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors ${
-                    isSpokenAuto
-                      ? 'bg-blue-600 text-white font-semibold'
-                      : 'text-slate-200 hover:bg-white/10 hover:text-white'
-                  }`}
+                  onClick={() => setSearchSpoken('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
-                  <div className="flex items-center gap-2">
-                    <MorphIcon name="sparkles" size={14} className={isSpokenAuto ? 'text-white' : 'text-blue-400'} />
-                    <span>{t('langSelector.autoDetect')}</span>
-                  </div>
-                  {isSpokenAuto && (
-                    <MorphIcon name="check" size={13} className="text-white" />
-                  )}
+                  <MorphIcon name="x" size={12} />
                 </button>
               )}
+            </div>
 
-              {/* Popular Languages Group (When not searching) */}
-              {!searchSpoken && (
-                <div className="px-2 pt-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-t border-white/10 mt-1">
-                  Phổ biến
-                </div>
-              )}
-
-              {(!searchSpoken
-                ? POPULAR_LANG_CODES.map((c) => getLanguageByCode(c))
-                : filteredSpokenLangs
-              ).map((lang) => {
+            {/* 2-Column Grid of Language Cards */}
+            <div className="grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+              {filteredSpokenLangs.map((lang) => {
                 const isSelected = !isSpokenAuto && spokenInputLanguage === lang.code;
                 return (
                   <button
                     key={lang.code}
                     type="button"
                     onClick={() => handleSelectSpokenLanguage(lang.code)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${
+                    className={`flex items-center justify-between p-2 rounded-xl text-xs transition-all ${
                       isSelected
-                        ? 'bg-blue-600 text-white font-semibold'
-                        : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600 text-white font-semibold shadow-md'
+                        : 'bg-white/[0.04] hover:bg-white/10 text-slate-200'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-base select-none">{lang.flag}</span>
-                      <span>{lang.name}</span>
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="text-lg select-none shrink-0">{lang.flag}</span>
+                      <div className="text-left truncate">
+                        <div className="truncate font-medium">{lang.name}</div>
+                        <div className="text-[10px] opacity-60 uppercase font-mono">{lang.code}</div>
+                      </div>
                     </div>
                     {isSelected && (
-                      <MorphIcon name="check" size={13} className="text-white" />
+                      <MorphIcon name="check" size={14} className="text-white shrink-0 ml-1" />
                     )}
                   </button>
                 );
@@ -265,7 +281,7 @@ export default function LanguageSelector() {
         )}
       </div>
 
-      {/* CENTER: Swap Direction Button */}
+      {/* 2. CENTER: Swap Direction Button with spring animation on click */}
       <div className="flex items-center justify-center">
         <button
           type="button"
@@ -273,13 +289,17 @@ export default function LanguageSelector() {
           className="flex items-center justify-center w-8 h-8 rounded-full apple-pill hover:bg-white/15 text-slate-300 hover:text-white transition-all active:scale-90 border border-white/10 shadow-sm"
           title={t('langSelector.swap')}
         >
-          <MorphIcon name="swap" size={14} className="text-blue-400" />
+          <MorphIcon
+            name="swap"
+            size={14}
+            className={`text-blue-400 transition-transform duration-300 ${isSwapped ? 'rotate-180' : 'rotate-0'}`}
+          />
         </button>
       </div>
 
-      {/* RIGHT: Target Language Dropdown & Multi-Language Popup Trigger */}
-      <div className="flex items-center gap-2">
-        {/* Primary Target Language Dropdown Pill */}
+      {/* 3. RIGHT: Target Language Dropdown & Parallel Translation */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Primary Target Dropdown */}
         <div className="relative" ref={targetRef}>
           <button
             type="button"
@@ -295,9 +315,9 @@ export default function LanguageSelector() {
             title={t('langSelector.translateTo')}
           >
             <MorphIcon name="globe" size={14} className={isTargetOpen ? 'text-white' : 'text-emerald-400'} />
-            <span className="text-slate-400 text-[11px] hidden sm:inline">{t('langSelector.translateTo')}</span>
+            <span className="text-slate-400 text-[11px] hidden md:inline">Dịch sang:</span>
             <span className="text-sm select-none">{primaryLangMeta.flag}</span>
-            <span className="font-semibold">{primaryLangMeta.name}</span>
+            <span className="font-semibold truncate max-w-[110px] sm:max-w-none">{primaryLangMeta.name}</span>
             <MorphIcon
               name="chevron"
               state={isTargetOpen ? 'open' : 'default'}
@@ -308,64 +328,91 @@ export default function LanguageSelector() {
 
           {/* Target Language Dropdown Popover */}
           {isTargetOpen && (
-            <div className="absolute right-0 mt-2 z-[9999] w-72 max-h-[380px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-2xl shadow-2xl p-2.5 overflow-hidden animate-fadeIn">
+            <div className="absolute right-0 mt-2 z-[9999] w-[320px] sm:w-[360px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-3xl shadow-2xl p-3 overflow-hidden animate-fadeIn">
               {/* Header */}
-              <div className="flex items-center justify-between px-2 py-1 mb-2 border-b border-white/10">
-                <span className="text-[11px] font-bold text-white uppercase tracking-wider">
-                  {t('langSelector.chooseTargetLang')}
-                </span>
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
+                  <MorphIcon name="globe" size={14} className="text-emerald-400" />
+                  <span>{t('langSelector.chooseTargetLang')}</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsTargetOpen(false)}
                   className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
                 >
-                  <MorphIcon name="x" size={13} />
+                  <MorphIcon name="x" size={14} />
                 </button>
               </div>
 
+              {/* Quick 1-Click Select Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
+                {QUICK_LANG_CODES.map((code) => {
+                  const l = getLanguageByCode(code);
+                  const isSel = primaryTargetLanguage === code;
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => handleSelectPrimaryTarget(code)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
+                        isSel
+                          ? 'bg-emerald-600 text-white font-semibold'
+                          : 'bg-white/10 hover:bg-white/20 text-slate-300'
+                      }`}
+                    >
+                      <span>{l.flag}</span>
+                      <span>{l.code.toUpperCase()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Search Input */}
-              <div className="relative mb-2 px-1">
+              <div className="relative mb-2.5">
                 <MorphIcon name="search" size={13} className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   autoFocus
-                  placeholder={t('langSelector.searchLang')}
+                  placeholder="Tìm nhanh ngôn ngữ đích..."
                   value={searchTarget}
                   onChange={(e) => setSearchTarget(e.target.value)}
-                  className="w-full bg-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-400 border border-white/10 outline-none focus:border-emerald-500"
+                  className="w-full bg-white/10 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-400 border border-white/10 outline-none focus:border-emerald-500"
                 />
+                {searchTarget && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTarget('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  >
+                    <MorphIcon name="x" size={12} />
+                  </button>
+                )}
               </div>
 
-              {/* Language Options List */}
-              <div className="overflow-y-auto space-y-1 pr-1 flex-1 max-h-[250px]">
-                {!searchTarget && (
-                  <div className="px-2 pt-1 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Phổ biến
-                  </div>
-                )}
-
-                {(!searchTarget
-                  ? POPULAR_LANG_CODES.map((c) => getLanguageByCode(c))
-                  : filteredTargetLangs
-                ).map((lang) => {
+              {/* 2-Column Grid of Language Cards */}
+              <div className="grid grid-cols-2 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+                {filteredTargetLangs.map((lang) => {
                   const isSelected = primaryTargetLanguage === lang.code;
                   return (
                     <button
                       key={lang.code}
                       type="button"
                       onClick={() => handleSelectPrimaryTarget(lang.code)}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${
+                      className={`flex items-center justify-between p-2 rounded-xl text-xs transition-all ${
                         isSelected
-                          ? 'bg-emerald-600 text-white font-semibold'
-                          : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                          ? 'bg-emerald-600 text-white font-semibold shadow-md'
+                          : 'bg-white/[0.04] hover:bg-white/10 text-slate-200'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-base select-none">{lang.flag}</span>
-                        <span>{lang.name}</span>
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="text-lg select-none shrink-0">{lang.flag}</span>
+                        <div className="text-left truncate">
+                          <div className="truncate font-medium">{lang.name}</div>
+                          <div className="text-[10px] opacity-60 uppercase font-mono">{lang.code}</div>
+                        </div>
                       </div>
                       {isSelected && (
-                        <MorphIcon name="check" size={13} className="text-white" />
+                        <MorphIcon name="check" size={14} className="text-white shrink-0 ml-1" />
                       )}
                     </button>
                   );
@@ -375,7 +422,7 @@ export default function LanguageSelector() {
           )}
         </div>
 
-        {/* Multi-Language Popup Trigger Button */}
+        {/* Multi-Language Parallel Button */}
         <button
           type="button"
           onClick={() => setIsMultiModalOpen(true)}
@@ -384,24 +431,22 @@ export default function LanguageSelector() {
               ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-semibold shadow-sm'
               : 'apple-pill hover:bg-white/15 text-slate-300 hover:text-white border-white/10'
           }`}
-          title="Mở popup cài đặt dịch song song đa ngôn ngữ"
+          title="Dịch song song sang nhiều ngôn ngữ cùng lúc"
         >
           <MorphIcon name="plus" size={12} className="text-emerald-400" />
           <span>
-            {targetLanguages.length > 1
-              ? `+${targetLanguages.length - 1} ${t('langSelector.add')}`
-              : t('langSelector.addParallelLang')}
+            {targetLanguages.length > 1 ? `+${targetLanguages.length - 1} ${t('langSelector.add')}` : 'Đa ngữ'}
           </span>
         </button>
       </div>
 
-      {/* POPUP / MODAL: Multi-Language Parallel Translation Manager */}
+      {/* POPUP MODAL: Multi-Language Parallel Translation Manager */}
       {isMultiModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           {/* Backdrop click to dismiss */}
           <div className="absolute inset-0" onClick={() => setIsMultiModalOpen(false)} />
 
-          <div className="relative apple-glass w-full max-w-md rounded-3xl border border-white/20 shadow-2xl p-5 z-10">
+          <div className="relative apple-glass w-full max-w-md rounded-3xl border border-white/20 shadow-2xl p-5 z-10 animate-fadeIn">
             {/* Modal Close Button */}
             <button
               type="button"
@@ -412,8 +457,8 @@ export default function LanguageSelector() {
             </button>
 
             {/* Modal Header */}
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                 <MorphIcon name="globe" size={16} />
               </div>
               <div>
@@ -426,10 +471,10 @@ export default function LanguageSelector() {
               </div>
             </div>
 
-            {/* Currently Active Languages Bar */}
-            <div className="my-3 p-2.5 rounded-2xl bg-white/[0.04] border border-white/10">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Đang dịch sang ({targetLanguages.length}):
+            {/* Active Tags */}
+            <div className="my-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                Đang kích hoạt ({targetLanguages.length}):
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {targetLanguages.map((code) => {
@@ -453,9 +498,9 @@ export default function LanguageSelector() {
                       ) : (
                         <button
                           type="button"
-                          onClick={() => removeTargetLanguage(code)}
-                          className="text-slate-400 hover:text-rose-400 transition-colors ml-0.5"
-                          title="Gỡ bỏ ngôn ngữ này"
+                          onClick={() => toggleMultiLanguage(code)}
+                          className="hover:text-rose-400 text-slate-400 ml-0.5"
+                          title="Hủy ngôn ngữ này"
                         >
                           <MorphIcon name="x" size={11} />
                         </button>
@@ -466,70 +511,45 @@ export default function LanguageSelector() {
               </div>
             </div>
 
-            {/* Search Box */}
-            <div className="relative mb-2">
-              <MorphIcon name="search" size={13} className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder={t('langSelector.searchLang')}
-                value={searchMulti}
-                onChange={(e) => setSearchMulti(e.target.value)}
-                className="w-full bg-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-400 border border-white/10 outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* Checkbox List of Available Languages */}
-            <div className="max-h-[220px] overflow-y-auto space-y-1 pr-1">
-              {filteredMultiLangs.map((lang) => {
-                const isSelected = targetLanguages.includes(lang.code);
+            {/* Grid of all available languages to toggle */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-[220px] overflow-y-auto pr-1 my-3">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const isActive = targetLanguages.includes(lang.code);
                 const isPrimary = lang.code === primaryTargetLanguage;
-
                 return (
-                  <div
+                  <button
                     key={lang.code}
+                    type="button"
                     onClick={() => toggleMultiLanguage(lang.code)}
-                    className={`flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-emerald-500/15 border border-emerald-500/30 text-white'
-                        : 'hover:bg-white/[0.06] text-slate-300'
+                    disabled={isPrimary}
+                    className={`flex items-center justify-between p-2 rounded-xl text-xs transition-all border ${
+                      isPrimary
+                        ? 'bg-emerald-600/25 border-emerald-500/50 text-emerald-200 opacity-90 cursor-default'
+                        : isActive
+                        ? 'bg-blue-600/30 border-blue-500 text-white font-semibold'
+                        : 'bg-white/[0.03] border-white/10 text-slate-300 hover:bg-white/[0.08]'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 truncate">
                       <span className="text-base select-none">{lang.flag}</span>
-                      <span className="font-medium">{lang.name}</span>
-                      <span className="text-[10px] text-slate-500 uppercase font-mono">
-                        ({lang.code})
-                      </span>
+                      <span className="truncate">{lang.name}</span>
                     </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {isPrimary && (
-                        <span className="text-[10px] text-emerald-400 font-mono">
-                          Mặc định
-                        </span>
-                      )}
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        disabled={isPrimary}
-                        onChange={() => toggleMultiLanguage(lang.code)}
-                        className="w-4 h-4 rounded text-emerald-500 focus:ring-0 bg-white/10 border-white/20 cursor-pointer"
-                      />
-                    </div>
-                  </div>
+                    {isActive && (
+                      <MorphIcon name="check" size={13} className="text-emerald-400 shrink-0 ml-1" />
+                    )}
+                  </button>
                 );
               })}
             </div>
 
-            {/* Modal Footer */}
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-end">
+            {/* Modal Done Button */}
+            <div className="pt-2 border-t border-white/10 flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsMultiModalOpen(false)}
-                className="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/30 transition-all active:scale-95 flex items-center gap-1.5"
+                className="px-5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md active:scale-95 transition-all"
               >
-                <MorphIcon name="check" size={14} />
-                <span>Hoàn tất</span>
+                Xong
               </button>
             </div>
           </div>
