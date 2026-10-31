@@ -9,7 +9,7 @@ import SettingsModal from './components/Settings/SettingsModal';
 import DialogModal from './components/DialogModal/DialogModal';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('meeting');
+  const [currentPage, setCurrentPage] = useState('home');
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const langMenuRef = useRef(null);
 
@@ -42,7 +42,7 @@ export default function App() {
         <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-between relative gap-2">
           {/* Brand */}
           <div
-            onClick={() => setCurrentPage('meeting')}
+            onClick={() => setCurrentPage('home')}
             className="flex items-center gap-2 cursor-pointer select-none group min-w-0"
           >
             <img
