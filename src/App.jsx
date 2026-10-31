@@ -10,6 +10,7 @@ import SettingsModal from './components/Settings/SettingsModal';
 export default function App() {
   const [currentPage, setCurrentPage] = useState('meeting');
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const langMenuRef = useRef(null);
 
   const {
@@ -55,14 +56,20 @@ export default function App() {
 
             {isRecording && (
               <div className="ml-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium tracking-wide">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                <MorphIcon
+                  name={isPaused ? 'play' : 'record'}
+                  state={isPaused ? 'play' : 'recording'}
+                  size={11}
+                  color="#f43f5e"
+                  className={isPaused ? '' : 'animate-pulse'}
+                />
                 {isPaused ? t('nav.paused') : t('nav.recording')}
               </div>
             )}
           </div>
 
           {/* Center Nav — clean segmented pill with MorphIcons */}
-          <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 rounded-full bg-white/[0.05] border border-white/[0.08]">
+          <nav className="hidden sm:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 p-1 rounded-full bg-white/[0.05] border border-white/[0.08]">
             {[
               { key: 'home', label: t('nav.home'), iconName: 'home' },
               { key: 'meeting', label: t('nav.meeting'), iconName: 'mic' },
@@ -79,12 +86,12 @@ export default function App() {
                 }`}
               >
                 <MorphIcon name={iconName} size={15} />
-                <span className="hidden sm:inline">{label}</span>
+                <span>{label}</span>
               </button>
             ))}
           </nav>
 
-          {/* Right Action Bar: UI Language Switcher & Settings */}
+          {/* Right Action Bar: UI Language Switcher, Settings & Mobile Menu Toggle */}
           <div className="flex items-center gap-2">
             {/* UI Language Dropdown Button */}
             <div className="relative" ref={langMenuRef}>
@@ -152,8 +159,47 @@ export default function App() {
             >
               <MorphIcon name="sliders" size={17} />
             </button>
+
+            {/* Mobile Hamburger Toggle Button with REAL morphicons animation (Menu <-> X) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white/80 hover:text-white transition-all active:scale-90"
+              aria-expanded={isMobileMenuOpen}
+              title="Menu"
+            >
+              <MorphIcon name="menu-x" state={isMobileMenuOpen ? 'open' : 'default'} spring="bouncy" size={18} />
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Navigation */}
+        {isMobileMenuOpen && (
+          <div className="sm:hidden absolute top-16 left-0 right-0 p-3 bg-[#1c1c1e]/95 backdrop-blur-2xl border-b border-white/10 shadow-2xl flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200 z-50">
+            {[
+              { key: 'home', label: t('nav.home'), iconName: 'home' },
+              { key: 'meeting', label: t('nav.meeting'), iconName: 'mic' },
+              { key: 'history', label: t('nav.history'), iconName: 'history' },
+            ].map(({ key, label, iconName }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setCurrentPage(key);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  currentPage === key
+                    ? 'bg-blue-600 text-white font-semibold'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <MorphIcon name={iconName} size={18} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* Main Container - Constrained and centered to prevent over-stretching */}

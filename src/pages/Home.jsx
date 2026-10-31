@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MorphIcon from '../components/MorphIcon/MorphIcon';
 import { useMeetingStore } from '../store/meetingStore';
 
 export default function Home({ onStartMeeting }) {
   const { savedMeetings, t } = useMeetingStore();
+
+  // Interactive Morphicons Playground States
+  const [demoMenuOpen, setDemoMenuOpen] = useState(false);
+  const [demoPlaying, setDemoPlaying] = useState(false);
+  const [demoRecording, setDemoRecording] = useState(false);
+  const [demoCopied, setDemoCopied] = useState(false);
+  const [demoMuted, setDemoMuted] = useState(false);
+  const [demoChevron, setDemoChevron] = useState(false);
 
   return (
     <div className="w-full flex-1 flex flex-col justify-center space-y-8 py-6">
@@ -108,6 +116,107 @@ export default function Home({ onStartMeeting }) {
               {t('home.feature4Desc')}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Interactive Morphicons Playground */}
+      <div className="w-full apple-glass p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+            </span>
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
+              Morphicons Animation Playground
+            </h3>
+          </div>
+          <span className="text-[11px] font-mono text-slate-400">
+            Bấm nút để thấy các nét SVG biến hình lò xo thực tế (Morphicons)
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* 1. Menu <-> X */}
+          <button
+            type="button"
+            onClick={() => setDemoMenuOpen(!demoMenuOpen)}
+            className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-blue-500/40 transition-all active:scale-95 text-center group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shadow-inner">
+              <MorphIcon name="menu-x" state={demoMenuOpen ? 'open' : 'default'} spring="bouncy" size={20} />
+            </div>
+            <div className="text-[11px] font-semibold text-slate-200">Menu ↔ X</div>
+            <div className="text-[9px] text-slate-400 uppercase font-mono">{demoMenuOpen ? 'Đang mở (X)' : 'Đang đóng (Menu)'}</div>
+          </button>
+
+          {/* 2. Play <-> Pause */}
+          <button
+            type="button"
+            onClick={() => setDemoPlaying(!demoPlaying)}
+            className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-emerald-500/40 transition-all active:scale-95 text-center group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shadow-inner">
+              <MorphIcon name="play-pause" state={demoPlaying ? 'pause' : 'play'} spring="bouncy" size={20} />
+            </div>
+            <div className="text-[11px] font-semibold text-slate-200">Play ↔ Pause</div>
+            <div className="text-[9px] text-slate-400 uppercase font-mono">{demoPlaying ? 'Tạm dừng (Pause)' : 'Đang phát (Play)'}</div>
+          </button>
+
+          {/* 3. Mic <-> Square */}
+          <button
+            type="button"
+            onClick={() => setDemoRecording(!demoRecording)}
+            className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-rose-500/40 transition-all active:scale-95 text-center group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center shadow-inner">
+              <MorphIcon name="record" state={demoRecording ? 'square' : 'mic'} spring="bouncy" size={20} />
+            </div>
+            <div className="text-[11px] font-semibold text-slate-200">Mic ↔ Stop</div>
+            <div className="text-[9px] text-slate-400 uppercase font-mono">{demoRecording ? 'Ghi âm (Square)' : 'Chờ ghi (Mic)'}</div>
+          </button>
+
+          {/* 4. Copy <-> Check */}
+          <button
+            type="button"
+            onClick={() => {
+              setDemoCopied(true);
+              setTimeout(() => setDemoCopied(false), 1600);
+            }}
+            className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-purple-500/40 transition-all active:scale-95 text-center group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center shadow-inner">
+              <MorphIcon name="copy-check" state={demoCopied ? 'copied' : 'default'} spring="bouncy" size={20} />
+            </div>
+            <div className="text-[11px] font-semibold text-slate-200">Copy ↔ Check</div>
+            <div className="text-[9px] text-slate-400 uppercase font-mono">{demoCopied ? 'Đã chép (Check)' : 'Nhấn chép (Copy)'}</div>
+          </button>
+
+          {/* 5. Volume <-> Muted */}
+          <button
+            type="button"
+            onClick={() => setDemoMuted(!demoMuted)}
+            className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-amber-500/40 transition-all active:scale-95 text-center group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shadow-inner">
+              <MorphIcon name="volume" state={demoMuted ? 'muted' : 'default'} spring="bouncy" size={20} />
+            </div>
+            <div className="text-[11px] font-semibold text-slate-200">Loa ↔ Mute</div>
+            <div className="text-[9px] text-slate-400 uppercase font-mono">{demoMuted ? 'Tắt tiếng (Mute)' : 'Bật tiếng (Loa)'}</div>
+          </button>
+
+          {/* 6. Chevron Down <-> Up */}
+          <button
+            type="button"
+            onClick={() => setDemoChevron(!demoChevron)}
+            className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 hover:border-sky-500/40 transition-all active:scale-95 text-center group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shadow-inner">
+              <MorphIcon name="chevron" state={demoChevron ? 'open' : 'default'} spring="bouncy" size={20} />
+            </div>
+            <div className="text-[11px] font-semibold text-slate-200">Mũi tên Xuống ↔ Lên</div>
+            <div className="text-[9px] text-slate-400 uppercase font-mono">{demoChevron ? 'Mở (Lên)' : 'Đóng (Xuống)'}</div>
+          </button>
         </div>
       </div>
 

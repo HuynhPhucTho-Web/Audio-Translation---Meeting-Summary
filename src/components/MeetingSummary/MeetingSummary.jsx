@@ -213,10 +213,10 @@ export default function MeetingSummary() {
               type="button"
               onClick={() => summaryService.exportToDocx(currentMeetingPayload)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all active:scale-95"
-              title="Xuất file DOC"
+              title="Xuất file Word DOCX (.docx)"
             >
               <MorphIcon name="file-down" size={13} className="text-emerald-400" />
-              <span>DOC</span>
+              <span>{t('summary.exportDoc') || 'DOCX'}</span>
             </button>
           </div>
         </div>
