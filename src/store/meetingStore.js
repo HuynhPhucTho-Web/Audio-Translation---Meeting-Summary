@@ -126,9 +126,13 @@ export const useMeetingStore = create((set, get) => ({
     isSpeaking: false,
   },
 
-  // Audio Recording Playback
+  // Audio Recording Playback & Mode
   recordedAudioUrl: null,
   recordedAudioBlob: null,
+  recordedWavUrl: null,
+  recordedWavBlob: null,
+  recordingMode: 'offline', // 'offline' (Mic trực tiếp) | 'online' (Google Meet/Zoom Tab + Mic)
+  setRecordingMode: (mode) => set({ recordingMode: mode }),
   spokenInputLanguage: 'auto', // Default to auto-detect language!
 
   // Audio Waveform & Level
@@ -210,6 +214,8 @@ export const useMeetingStore = create((set, get) => ({
     audioVolume: 0,
     recordedAudioUrl: null,
     recordedAudioBlob: null,
+    recordedWavUrl: null,
+    recordedWavBlob: null,
     transcript: [],
     topics: [],
     decisions: [],
@@ -219,8 +225,24 @@ export const useMeetingStore = create((set, get) => ({
     activeTab: 'live',
   }),
 
-  setRecordedAudio: (url, blob) => set({ recordedAudioUrl: url, recordedAudioBlob: blob }),
-  clearRecordedAudio: () => set({ recordedAudioUrl: null, recordedAudioBlob: null }),
+  setRecordedAudio: (audioData) => {
+    if (typeof audioData === 'string') {
+      set({ recordedAudioUrl: audioData });
+    } else if (audioData) {
+      set({
+        recordedAudioUrl: audioData.url || audioData.wavUrl || null,
+        recordedAudioBlob: audioData.blob || audioData.wavBlob || null,
+        recordedWavUrl: audioData.wavUrl || null,
+        recordedWavBlob: audioData.wavBlob || null,
+      });
+    }
+  },
+  clearRecordedAudio: () => set({
+    recordedAudioUrl: null,
+    recordedAudioBlob: null,
+    recordedWavUrl: null,
+    recordedWavBlob: null,
+  }),
   setSpokenInputLanguage: (lang) => set({ spokenInputLanguage: lang }),
 
   setDetectedLanguage: (lang) => set({ detectedLanguage: lang }),

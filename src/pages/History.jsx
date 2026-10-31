@@ -131,6 +131,14 @@ export default function History({ onNavigateToMeeting }) {
                   >
                     <MorphIcon name="printer" size={16} />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => summaryService.exportToDocx(meeting)}
+                    className="p-1.5 text-slate-400 hover:text-emerald-400 rounded-full hover:bg-white/10 transition-colors"
+                    title="DOCX"
+                  >
+                    <MorphIcon name="file-down" size={16} />
+                  </button>
                 </div>
 
                 <button

@@ -702,11 +702,18 @@ class SpeechService {
       return { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳', confidence: 99 };
     }
 
-    // 7. Common Vietnamese words without accents
-    const viWords = ['hom nay', 'chung ta', 'cuoc hop', 'tien do', 'hoan thanh', 'bao cao', 'ke hoach', 'du an', 'lam gi', 'khong', 'chua', 'duoc', 'anh', 'em', 'xin chao', 'cam on', 'nguoi', 'mat troi', 'ban', 'thoi gian', 'phien dich'];
+    // 7. Common Vietnamese words without accents (Offline & Online meetings)
+    const viWords = [
+      'hom nay', 'chung ta', 'cuoc hop', 'tien do', 'hoan thanh', 'bao cao', 'ke hoach', 'du an',
+      'lam gi', 'khong', 'chua', 'duoc', 'anh', 'em', 'xin chao', 'cam on', 'nguoi', 'mat troi',
+      'ban', 'thoi gian', 'phien dich', 'thong nhat', 'quyet dinh', 'y kien', 'van de', 'giai phap',
+      'trien khai', 'danh gia', 'dong y', 'chinh xac', 'hieu roi', 'chao moi nguoi', 'bat dau',
+      'ket thuc', 'tiep tuc', 'xem xet', 'tat ca', 'nhu the nao', 'tai sao', 'bao gio', 'o dau',
+      'phong hop', 'truc tuyen', 'online', 'offline', 'nhiem vu', 'cong viec', 'tai lieu', 'thao luan'
+    ];
     const hasViWord = viWords.some((w) => lower.includes(w));
     if (hasViWord) {
-      return { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳', confidence: 96 };
+      return { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳', confidence: 97 };
     }
 
     // 8. French specific markers
@@ -724,20 +731,24 @@ class SpeechService {
       return { code: 'es', name: 'Español', flag: '🇪🇸', confidence: 95 };
     }
 
-    // 11. English detection
-    const enWords = [
-      'the', 'we', 'and', 'project', 'deadline', 'hello', 'meeting', 'issue', 'complete',
-      'today', 'schedule', 'finish', 'launch', 'api', 'backend', 'frontend', 'team',
-      'discuss', 'good', 'morning', 'afternoon', 'agree', 'plan', 'task', 'release',
-      'sun', 'earth', 'world', 'people', 'cold', 'dark', 'life', 'beach', 'water', 'helps',
-      'animals', 'plants', 'without', 'would', 'there', 'live', 'rises', 'over', 'yes', 'no',
-      'how', 'are', 'you', 'what', 'is', 'your', 'name', 'can', 'see'
+    // 11. English detection (Requires robust confirmation to avoid false positives on Vietnamese loanwords)
+    const enCoreGrammarWords = [
+      'the', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'this', 'that', 'these', 'those',
+      'what', 'why', 'how', 'when', 'where', 'who', 'which', 'there', 'their', 'they', 'we',
+      'would', 'could', 'should', 'with', 'about', 'from', 'good', 'morning', 'afternoon'
     ];
-    const words = lower.split(/\s+/);
-    const matchCount = enWords.filter((w) => words.includes(w)).length;
-    if (matchCount > 0 || (words.length >= 2 && /^[a-zA-Z0-9\s.,!?'"-]+$/.test(text))) {
-      const confidence = Math.min(99, 90 + matchCount * 2);
+    const words = lower.split(/\s+/).filter(Boolean);
+    const grammarMatches = enCoreGrammarWords.filter((w) => words.includes(w)).length;
+
+    // Only switch to English if at least 2 distinct English structural words are present
+    if (grammarMatches >= 2 || (words.length >= 3 && grammarMatches >= 1 && !viDiacriticsRegex.test(lower))) {
+      const confidence = Math.min(99, 90 + grammarMatches * 3);
       return { code: 'en', name: 'English', flag: '🇬🇧', confidence };
+    }
+
+    // Default to Vietnamese if previously Vietnamese
+    if (this.detectedLangCode === 'vi') {
+      return { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳', confidence: 95 };
     }
 
     return null;
