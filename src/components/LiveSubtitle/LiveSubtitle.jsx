@@ -98,26 +98,26 @@ export default function LiveSubtitle() {
     : transcript;
 
   return (
-    <div className="w-full flex-1 flex flex-col apple-glass rounded-2xl border border-white/10 shadow-xl overflow-hidden h-[540px] max-h-[calc(100vh-270px)] min-h-[380px] relative">
+    <div className="w-full flex-1 flex flex-col apple-glass rounded-2xl border border-white/10 shadow-xl overflow-hidden h-[420px] sm:h-[540px] max-h-[calc(100vh-220px)] sm:max-h-[calc(100vh-270px)] min-h-[260px] sm:min-h-[360px] relative">
       {/* Sleek Apple Dictation Subtitle Header & Control Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-b border-white/10 bg-black/30 shrink-0">
-        <div className="flex items-center gap-2">
-          <MorphIcon name="message-square" size={16} className="text-blue-400" />
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 px-3 sm:px-5 py-2 sm:py-2.5 border-b border-white/10 bg-black/30 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <MorphIcon name="message-square" size={15} className="text-blue-400 shrink-0" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
             {t('liveSubtitle.title')}
           </h2>
-          <span className="text-[11px] font-mono text-slate-400">
-            ({displayTranscript.length} {transcriptMode === 'paragraph' ? t('liveSubtitle.modeParagraph') : t('liveSubtitle.sentences')})
+          <span className="text-[10px] sm:text-[11px] font-mono text-slate-400">
+            ({displayTranscript.length})
           </span>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           {/* Transcript Mode Switcher (Sentence vs Paragraph) */}
           <div className="flex items-center p-0.5 rounded-full border border-white/10 bg-black/40 text-xs">
             <button
               type="button"
               onClick={() => setTranscriptMode('sentence')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-all ${
                 transcriptMode === 'sentence'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
@@ -130,7 +130,7 @@ export default function LiveSubtitle() {
             <button
               type="button"
               onClick={() => setTranscriptMode('paragraph')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-all ${
                 transcriptMode === 'paragraph'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
@@ -237,9 +237,9 @@ export default function LiveSubtitle() {
               </div>
 
               {/* Line 1: Spoken Original */}
-              <div className="text-slate-200 text-sm leading-relaxed flex items-start gap-2 pl-8">
-                <span className="text-xs select-none opacity-80 mt-0.5">{origLangObj.flag}</span>
-                <div className="flex-1 space-y-1 font-normal">
+              <div className="text-slate-200 text-xs sm:text-sm leading-relaxed flex items-start gap-1.5 sm:gap-2 pl-1 sm:pl-7">
+                <span className="text-xs select-none opacity-80 mt-0.5 shrink-0">{origLangObj.flag}</span>
+                <div className="flex-1 space-y-1 font-normal min-w-0">
                   {(item.originalText || '').split('\n').map((line, idx) => (
                     <p key={idx} className="leading-relaxed">"{line}"</p>
                   ))}
@@ -249,8 +249,8 @@ export default function LiveSubtitle() {
               {/* Line 2: Translated Output (Only if showTranslation is true) */}
               {showTranslation && (
                 <>
-                  <div className="my-2 ml-8 border-t border-white/[0.08]" />
-                  <div className="pl-8 space-y-1.5">
+                  <div className="my-1.5 sm:my-2 ml-1 sm:ml-7 border-t border-white/[0.08]" />
+                  <div className="pl-1 sm:pl-7 space-y-1.5">
                     {targetLanguages.map((langCode) => {
                       const langMeta = getLanguageByCode(langCode);
                       const translationText = item.translations[langCode] || item.translations[primaryTargetLanguage] || item.originalText;
@@ -259,11 +259,11 @@ export default function LiveSubtitle() {
                       return (
                         <div
                           key={langCode}
-                          className="text-emerald-300 text-sm font-medium leading-relaxed flex items-start justify-between gap-2 bg-emerald-500/[0.08] p-2 px-3 rounded-xl border border-emerald-500/20"
+                          className="text-emerald-300 text-xs sm:text-sm font-medium leading-relaxed flex items-start justify-between gap-1.5 sm:gap-2 bg-emerald-500/[0.08] p-2 px-2.5 sm:px-3 rounded-xl border border-emerald-500/20"
                         >
-                          <div className="flex items-start gap-2 flex-1">
-                            <span className="text-xs select-none mt-0.5">{langMeta.flag}</span>
-                            <div className="flex-1 space-y-1.5">
+                          <div className="flex items-start gap-1.5 sm:gap-2 flex-1 min-w-0">
+                            <span className="text-xs select-none mt-0.5 shrink-0">{langMeta.flag}</span>
+                            <div className="flex-1 space-y-1.5 min-w-0">
                               {transLines.map((line, idx) => (
                                 <p key={idx} className="leading-relaxed">"{line}"</p>
                               ))}
@@ -276,7 +276,7 @@ export default function LiveSubtitle() {
                             className="text-slate-400 hover:text-emerald-300 p-1 rounded-full hover:bg-emerald-500/20 transition-colors shrink-0"
                             title={t('liveSubtitle.listenVoice')}
                           >
-                            <MorphIcon name="volume" size={15} />
+                            <MorphIcon name="volume" size={14} />
                           </button>
                         </div>
                       );
@@ -334,7 +334,7 @@ export default function LiveSubtitle() {
             setShowScrollBottomBtn(false);
             scrollToBottom(true);
           }}
-          className="absolute bottom-12 right-6 apple-glass px-4 py-1.5 rounded-full text-xs font-semibold text-white shadow-2xl border border-white/20 hover:bg-white/20 transition-all active:scale-95 flex items-center gap-1.5 z-20 animate-fadeIn"
+          className="absolute bottom-10 sm:bottom-12 right-4 sm:right-6 apple-glass px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold text-white shadow-2xl border border-white/20 hover:bg-white/20 transition-all active:scale-95 flex items-center gap-1.5 z-20 animate-fadeIn"
         >
           <MorphIcon name="chevron-down" size={14} className="text-blue-400" />
           <span>{t('liveSubtitle.scrollToBottom')}</span>

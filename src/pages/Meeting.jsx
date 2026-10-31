@@ -77,13 +77,13 @@ export default function Meeting() {
   return (
     <div className="w-full flex-1 flex flex-col space-y-4">
       {/* Apple-style Segmented Control Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-1 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 pb-1 border-b border-white/10">
         {/* Segmented Control */}
         <div className="apple-segmented-control flex items-center gap-1 w-full sm:w-auto p-1">
           <button
             type="button"
             onClick={() => setActiveTab('live')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-tight transition-all active:scale-95 ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold tracking-tight transition-all active:scale-95 ${
               activeTab === 'live'
                 ? 'bg-white/20 text-white shadow-md backdrop-blur-xl'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -93,38 +93,38 @@ export default function Meeting() {
               {isRecording && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />}
               <MorphIcon name="mic" size={14} className="text-blue-400" />
             </div>
-            <span className="uppercase">{t('meeting.tabLive')}</span>
+            <span className="uppercase text-[11px] sm:text-xs">{t('meeting.tabLive')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('transcript')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-tight transition-all active:scale-95 ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold tracking-tight transition-all active:scale-95 ${
               activeTab === 'transcript'
                 ? 'bg-white/20 text-white shadow-md backdrop-blur-xl'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
             <MorphIcon name="file-text" size={14} />
-            <span className="uppercase">{t('meeting.tabTranscript')} ({transcript.length})</span>
+            <span className="uppercase text-[11px] sm:text-xs">{t('meeting.tabTranscript')} ({transcript.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('summary')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-tight transition-all active:scale-95 ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold tracking-tight transition-all active:scale-95 ${
               activeTab === 'summary'
                 ? 'bg-white/20 text-white shadow-md backdrop-blur-xl'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
             <MorphIcon name="sparkles" size={14} className="text-amber-300" />
-            <span className="uppercase">{t('meeting.tabSummary')}</span>
+            <span className="uppercase text-[11px] sm:text-xs">{t('meeting.tabSummary')}</span>
           </button>
         </div>
 
         {/* Apple Status Badges on the right */}
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 text-xs font-mono text-slate-400">
           <span className="flex items-center gap-1 px-2.5 py-1 rounded-full apple-pill text-[11px] text-slate-300">
             <MorphIcon name="users" size={12} className="text-blue-400" />
             <span>{participants.length} {t('history.people')}</span>
@@ -154,9 +154,9 @@ export default function Meeting() {
       {activeTab === 'transcript' && (
         <div className="w-full flex-1 flex flex-col space-y-3.5">
           {/* Apple Search & Filter Toolbar */}
-          <div className="w-full apple-glass rounded-2xl p-3 border border-white/10 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="w-full apple-glass rounded-2xl p-2.5 sm:p-3 border border-white/10 shadow-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
             {/* Search Input */}
-            <div className="relative w-full sm:w-80">
+            <div className="relative w-full sm:w-72">
               <MorphIcon name="search" size={14} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -168,13 +168,13 @@ export default function Meeting() {
             </div>
 
             {/* Filter controls */}
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-start sm:justify-end">
               {/* Transcript Mode Switcher (Sentence vs Paragraph) */}
               <div className="flex items-center p-0.5 rounded-full border border-white/10 bg-black/40 text-xs">
                 <button
                   type="button"
                   onClick={() => setTranscriptMode('sentence')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-all ${
                     transcriptMode === 'sentence'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
@@ -187,7 +187,7 @@ export default function Meeting() {
                 <button
                   type="button"
                   onClick={() => setTranscriptMode('paragraph')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-medium transition-all ${
                     transcriptMode === 'paragraph'
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
@@ -203,7 +203,7 @@ export default function Meeting() {
               <button
                 type="button"
                 onClick={toggleShowTranslation}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all active:scale-95 ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-medium border transition-all active:scale-95 ${
                   showTranslation
                     ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-300 hover:bg-emerald-500/25'
                     : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
@@ -215,16 +215,17 @@ export default function Meeting() {
                   size={12}
                   className={showTranslation ? 'text-emerald-400' : 'text-slate-400'}
                 />
-                <span>{showTranslation ? t('liveSubtitle.turnOffTranslation') : t('liveSubtitle.turnOnTranslation')}</span>
+                <span className="hidden xs:inline">{showTranslation ? t('liveSubtitle.turnOffTranslation') : t('liveSubtitle.turnOnTranslation')}</span>
+                <span className="xs:hidden">{showTranslation ? 'Dịch: Bật' : 'Dịch: Tắt'}</span>
               </button>
 
               {/* Speaker Filter */}
-              <div className="flex items-center gap-1.5 apple-pill px-3 py-1 rounded-full text-xs text-slate-300">
-                <MorphIcon name="users" size={13} className="text-blue-400" />
+              <div className="flex items-center gap-1.5 apple-pill px-2.5 sm:px-3 py-1 rounded-full text-xs text-slate-300 max-w-[140px] truncate">
+                <MorphIcon name="users" size={12} className="text-blue-400 shrink-0" />
                 <select
                   value={selectedSpeakerFilter}
                   onChange={(e) => setSpeakerFilter(e.target.value)}
-                  className="bg-transparent text-white outline-none cursor-pointer text-xs"
+                  className="bg-transparent text-white outline-none cursor-pointer text-xs truncate w-full"
                 >
                   <option value="all" className="bg-[#1c1c1e]">{t('meeting.allSpeakers')}</option>
                   {participants.map((spk) => (
@@ -236,12 +237,12 @@ export default function Meeting() {
               </div>
 
               {/* Category Filter */}
-              <div className="flex items-center gap-1.5 apple-pill px-3 py-1 rounded-full text-xs text-slate-300">
-                <MorphIcon name="filter" size={13} className="text-blue-400" />
+              <div className="flex items-center gap-1.5 apple-pill px-2.5 sm:px-3 py-1 rounded-full text-xs text-slate-300 max-w-[140px] truncate">
+                <MorphIcon name="filter" size={12} className="text-blue-400 shrink-0" />
                 <select
                   value={selectedCategoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="bg-transparent text-white outline-none cursor-pointer text-xs"
+                  className="bg-transparent text-white outline-none cursor-pointer text-xs truncate w-full"
                 >
                   <option value="all" className="bg-[#1c1c1e]">{t('meeting.allCategories')}</option>
                   {Object.entries(SENTENCE_CATEGORIES).map(([key, info]) => (
@@ -258,7 +259,7 @@ export default function Meeting() {
                 onClick={handleCopyAll}
                 className="flex items-center gap-1.5 px-3 py-1 apple-pill hover:bg-white/15 text-slate-200 text-xs font-semibold rounded-full transition-all active:scale-95"
               >
-                <MorphIcon name="copy-check" state={copiedAll ? 'copied' : 'default'} size={14} />
+                <MorphIcon name="copy-check" state={copiedAll ? 'copied' : 'default'} size={13} />
                 <span>{copiedAll ? t('meeting.copied') : t('meeting.copyAll')}</span>
               </button>
             </div>

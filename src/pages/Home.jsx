@@ -14,11 +14,11 @@ export default function Home({ onStartMeeting }) {
   const [demoChevron, setDemoChevron] = useState(false);
 
   return (
-    <div className="w-full flex-1 flex flex-col justify-center space-y-8 py-6">
+    <div className="w-full flex-1 flex flex-col justify-center space-y-6 sm:space-y-8 py-3 sm:py-6">
       {/* Apple-style Hero Section */}
-      <div className="text-center space-y-4 max-w-3xl mx-auto flex flex-col items-center">
+      <div className="text-center space-y-3 sm:space-y-4 max-w-3xl mx-auto flex flex-col items-center px-1">
         {/* App Logo */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 mb-1 rounded-3xl p-2.5 bg-white/[0.04] border border-white/10 shadow-2xl flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
+        <div className="w-16 h-16 sm:w-24 sm:h-24 mb-0.5 sm:mb-1 rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 bg-white/[0.04] border border-white/10 shadow-2xl flex items-center justify-center backdrop-blur-md hover:scale-105 transition-all duration-300">
           <img
             src="/logo.png"
             alt="AI Meeting Translator Logo"
@@ -26,28 +26,28 @@ export default function Home({ onStartMeeting }) {
           />
         </div>
 
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full apple-pill text-blue-300 text-xs font-semibold shadow-sm">
-          <MorphIcon name="sparkles" size={14} className="text-blue-400" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full apple-pill text-blue-300 text-xs font-semibold shadow-sm">
+          <MorphIcon name="sparkles" size={13} className="text-blue-400" />
           <span>{t('home.heroBadge')}</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+        <h1 className="text-2xl xs:text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
           {t('home.heroTitle1')} <br />
           <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-rose-400 bg-clip-text text-transparent">
             {t('home.heroTitle2')}
           </span>
         </h1>
 
-        <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
+        <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed px-2">
           {t('home.heroDesc')}
         </p>
 
         {/* Apple Pill Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-1 sm:pt-2 w-full">
           <button
             type="button"
             onClick={() => onStartMeeting()}
-            className="flex items-center gap-2 px-7 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all active:scale-95"
+            className="w-full xs:w-auto flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition-all active:scale-95"
           >
             <MorphIcon name="mic" size={16} />
             <span>{t('home.startBtn')}</span>
@@ -57,7 +57,7 @@ export default function Home({ onStartMeeting }) {
       </div>
 
       {/* 4 Apple Feature Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
         {/* Pillar 1 */}
         <div className="apple-glass p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-md flex flex-col justify-between">
           <div>
@@ -120,8 +120,8 @@ export default function Home({ onStartMeeting }) {
       </div>
 
       {/* Interactive Morphicons Playground */}
-      <div className="w-full apple-glass p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+      <div className="w-full apple-glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-2 mb-3.5 sm:mb-4">
           <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
@@ -131,12 +131,12 @@ export default function Home({ onStartMeeting }) {
               Morphicons Animation Playground
             </h3>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[10px] sm:text-[11px] font-mono text-slate-400">
             Bấm nút để thấy các nét SVG biến hình lò xo thực tế (Morphicons)
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           {/* 1. Menu <-> X */}
           <button
             type="button"

@@ -136,60 +136,67 @@ export default function LanguageSelector() {
   };
 
   return (
-    <div className="relative z-30 w-full apple-glass rounded-2xl p-2 sm:px-4 sm:py-2.5 shadow-lg border border-white/10 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-      {/* 1. LEFT: Spoken Language Dropdown */}
-      <div className="relative" ref={spokenRef}>
-        <button
-          type="button"
-          onClick={() => {
-            setIsSpokenOpen(!isSpokenOpen);
-            setIsTargetOpen(false);
-          }}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 border ${
-            isSpokenOpen
-              ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-500/30'
-              : 'apple-pill hover:bg-white/15 text-slate-200 hover:text-white border-white/10'
-          }`}
-          title={t('langSelector.spokenLang')}
-        >
-          <MorphIcon name="mic" size={14} className={isSpokenOpen ? 'text-white' : 'text-blue-400'} />
-          <span className="text-slate-400 text-[11px] hidden md:inline">Nói:</span>
-          <span className="text-sm select-none">{spokenLangMeta.flag}</span>
-          <span className="font-semibold truncate max-w-[110px] sm:max-w-none">{spokenLangMeta.name}</span>
+    <div className="relative z-30 w-full apple-glass rounded-2xl p-2 sm:px-4 sm:py-2.5 shadow-lg border border-white/10 flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-2 sm:gap-3">
+      {/* Main Translation Direction: [🎙️ Nói: 🇻🇳] ⇄ [🌐 Dịch: 🇬🇧] */}
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+        {/* 1. LEFT: Spoken Language Dropdown */}
+        <div className="relative flex-1 min-w-0" ref={spokenRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsSpokenOpen(!isSpokenOpen);
+              setIsTargetOpen(false);
+            }}
+            className={`w-full flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 border ${
+              isSpokenOpen
+                ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-500/30'
+                : 'apple-pill hover:bg-white/15 text-slate-200 hover:text-white border-white/10'
+            }`}
+            title={t('langSelector.spokenLang')}
+          >
+            <div className="flex items-center gap-1.5 min-w-0 truncate">
+              <MorphIcon name="mic" size={13} className={isSpokenOpen ? 'text-white' : 'text-blue-400 shrink-0'} />
+              <span className="text-slate-400 text-[11px] hidden md:inline">Nói:</span>
+              <span className="text-sm select-none shrink-0">{spokenLangMeta.flag}</span>
+              <span className="font-semibold truncate max-w-[80px] xs:max-w-[110px] sm:max-w-none">{spokenLangMeta.name}</span>
 
-          {/* Dynamic Auto-detect indicator */}
-          {isSpokenAuto && detectedLanguage.code !== 'auto' && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
-              <span>{detectedLanguage.flag}</span>
-            </span>
-          )}
-
-          <MorphIcon
-            name="chevron"
-            state={isSpokenOpen ? 'open' : 'default'}
-            size={12}
-            className="text-slate-400"
-          />
-        </button>
-
-        {/* Spoken Language Dropdown Popover */}
-        {isSpokenOpen && (
-          <div className="absolute left-0 mt-2 z-[9999] w-[320px] sm:w-[360px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-3xl shadow-2xl p-3 overflow-hidden animate-fadeIn">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
-                <MorphIcon name="mic" size={14} className="text-blue-400" />
-                <span>{t('langSelector.spokenLang')}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsSpokenOpen(false)}
-                className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
-              >
-                <MorphIcon name="x" size={14} />
-              </button>
+              {/* Dynamic Auto-detect indicator */}
+              {isSpokenAuto && detectedLanguage.code !== 'auto' && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
+                  <span>{detectedLanguage.flag}</span>
+                </span>
+              )}
             </div>
+
+            <MorphIcon
+              name="chevron"
+              state={isSpokenOpen ? 'open' : 'default'}
+              size={11}
+              className="text-slate-400 shrink-0 ml-1"
+            />
+          </button>
+
+        {/* Spoken Language Dropdown Popover - Center-anchored and responsive on mobile */}
+        {isSpokenOpen && (
+          <>
+            {/* Mobile backdrop to dismiss */}
+            <div className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm sm:hidden" onClick={() => setIsSpokenOpen(false)} />
+            <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-24 sm:top-full mt-2 z-[9999] w-[calc(100vw-24px)] sm:w-[360px] max-w-[380px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-3xl shadow-2xl p-3 overflow-hidden animate-fadeIn">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
+                  <MorphIcon name="mic" size={14} className="text-blue-400" />
+                  <span>{t('langSelector.spokenLang')}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsSpokenOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
+                >
+                  <MorphIcon name="x" size={14} />
+                </button>
+              </div>
 
             {/* Quick 1-Click Select Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
@@ -278,11 +285,12 @@ export default function LanguageSelector() {
               })}
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
+    </div>
 
       {/* 2. CENTER: Swap Direction Button with spring animation on click */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center shrink-0">
         <button
           type="button"
           onClick={handleSwapLanguages}
@@ -297,52 +305,55 @@ export default function LanguageSelector() {
         </button>
       </div>
 
-      {/* 3. RIGHT: Target Language Dropdown & Parallel Translation */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* Primary Target Dropdown */}
-        <div className="relative" ref={targetRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setIsTargetOpen(!isTargetOpen);
-              setIsSpokenOpen(false);
-            }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 border ${
-              isTargetOpen
-                ? 'bg-emerald-600 text-white border-emerald-400 ring-2 ring-emerald-500/30'
-                : 'apple-pill hover:bg-white/15 text-slate-200 hover:text-white border-white/10'
-            }`}
-            title={t('langSelector.translateTo')}
-          >
-            <MorphIcon name="globe" size={14} className={isTargetOpen ? 'text-white' : 'text-emerald-400'} />
+      {/* 3. RIGHT: Target Language Dropdown */}
+      <div className="relative flex-1 min-w-0" ref={targetRef}>
+        <button
+          type="button"
+          onClick={() => {
+            setIsTargetOpen(!isTargetOpen);
+            setIsSpokenOpen(false);
+          }}
+          className={`w-full flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 border ${
+            isTargetOpen
+              ? 'bg-emerald-600 text-white border-emerald-400 ring-2 ring-emerald-500/30'
+              : 'apple-pill hover:bg-white/15 text-slate-200 hover:text-white border-white/10'
+          }`}
+          title={t('langSelector.translateTo')}
+        >
+          <div className="flex items-center gap-1.5 min-w-0 truncate">
+            <MorphIcon name="globe" size={13} className={isTargetOpen ? 'text-white' : 'text-emerald-400 shrink-0'} />
             <span className="text-slate-400 text-[11px] hidden md:inline">Dịch sang:</span>
-            <span className="text-sm select-none">{primaryLangMeta.flag}</span>
-            <span className="font-semibold truncate max-w-[110px] sm:max-w-none">{primaryLangMeta.name}</span>
-            <MorphIcon
-              name="chevron"
-              state={isTargetOpen ? 'open' : 'default'}
-              size={12}
-              className="text-slate-400"
-            />
-          </button>
+            <span className="text-sm select-none shrink-0">{primaryLangMeta.flag}</span>
+            <span className="font-semibold truncate max-w-[80px] xs:max-w-[110px] sm:max-w-none">{primaryLangMeta.name}</span>
+          </div>
+          <MorphIcon
+            name="chevron"
+            state={isTargetOpen ? 'open' : 'default'}
+            size={11}
+            className="text-slate-400 shrink-0 ml-1"
+          />
+        </button>
 
-          {/* Target Language Dropdown Popover */}
+          {/* Target Language Dropdown Popover - Center-anchored and responsive on mobile */}
           {isTargetOpen && (
-            <div className="absolute right-0 mt-2 z-[9999] w-[320px] sm:w-[360px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-3xl shadow-2xl p-3 overflow-hidden animate-fadeIn">
-              {/* Header */}
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
-                  <MorphIcon name="globe" size={14} className="text-emerald-400" />
-                  <span>{t('langSelector.chooseTargetLang')}</span>
+            <>
+              {/* Mobile backdrop to dismiss */}
+              <div className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm sm:hidden" onClick={() => setIsTargetOpen(false)} />
+              <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 top-24 sm:top-full mt-2 z-[9999] w-[calc(100vw-24px)] sm:w-[360px] max-w-[380px] flex flex-col bg-[#1c1c1e] border border-white/20 rounded-3xl shadow-2xl p-3 overflow-hidden animate-fadeIn">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
+                    <MorphIcon name="globe" size={14} className="text-emerald-400" />
+                    <span>{t('langSelector.chooseTargetLang')}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsTargetOpen(false)}
+                    className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
+                  >
+                    <MorphIcon name="x" size={14} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsTargetOpen(false)}
-                  className="p-1 text-slate-400 hover:text-white rounded-full hover:bg-white/10"
-                >
-                  <MorphIcon name="x" size={14} />
-                </button>
-              </div>
 
               {/* Quick 1-Click Select Chips */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
@@ -419,14 +430,15 @@ export default function LanguageSelector() {
                 })}
               </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
+      </div>
 
         {/* Multi-Language Parallel Button */}
         <button
           type="button"
           onClick={() => setIsMultiModalOpen(true)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 border ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95 border self-end xs:self-auto shrink-0 ${
             targetLanguages.length > 1
               ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-semibold shadow-sm'
               : 'apple-pill hover:bg-white/15 text-slate-300 hover:text-white border-white/10'
@@ -446,7 +458,7 @@ export default function LanguageSelector() {
           {/* Backdrop click to dismiss */}
           <div className="absolute inset-0" onClick={() => setIsMultiModalOpen(false)} />
 
-          <div className="relative apple-glass w-full max-w-md rounded-3xl border border-white/20 shadow-2xl p-5 z-10 animate-fadeIn">
+          <div className="relative apple-glass w-full max-w-md max-h-[85vh] flex flex-col rounded-3xl border border-white/20 shadow-2xl p-4 sm:p-5 z-10 animate-fadeIn overflow-hidden">
             {/* Modal Close Button */}
             <button
               type="button"
@@ -457,8 +469,8 @@ export default function LanguageSelector() {
             </button>
 
             {/* Modal Header */}
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="flex items-center gap-2.5 mb-3 shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                 <MorphIcon name="globe" size={16} />
               </div>
               <div>
@@ -472,11 +484,11 @@ export default function LanguageSelector() {
             </div>
 
             {/* Active Tags */}
-            <div className="my-3 p-3 rounded-2xl bg-white/[0.04] border border-white/10">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            <div className="my-2 p-2.5 sm:p-3 rounded-2xl bg-white/[0.04] border border-white/10 shrink-0">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                 Đang kích hoạt ({targetLanguages.length}):
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 max-h-[72px] overflow-y-auto">
                 {targetLanguages.map((code) => {
                   const meta = getLanguageByCode(code);
                   const isPrimary = code === primaryTargetLanguage;

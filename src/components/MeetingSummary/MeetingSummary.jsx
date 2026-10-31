@@ -157,7 +157,7 @@ export default function MeetingSummary() {
   return (
     <div className="w-full space-y-4">
       {/* Top Header & Clean Action Strip */}
-      <div className="w-full apple-glass rounded-2xl p-4 sm:p-5 border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
+      <div className="w-full apple-glass rounded-2xl p-3.5 sm:p-5 border border-white/10 shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0">
             <MorphIcon name="sparkles" size={20} />
@@ -173,12 +173,12 @@ export default function MeetingSummary() {
         </div>
 
         {/* Clean Action Buttons: Làm mới AI & Xuất File (Không trùng lặp) */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between sm:justify-end">
           <button
             type="button"
             onClick={handleRegenerate}
             disabled={isAnalyzing}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-all shadow-md active:scale-95 disabled:opacity-50"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition-all shadow-md active:scale-95 disabled:opacity-50"
             title={t('summary.refreshAi')}
           >
             <MorphIcon name="refresh-cw" size={13} className={isAnalyzing ? 'animate-spin' : ''} />
@@ -223,7 +223,7 @@ export default function MeetingSummary() {
       </div>
 
       {/* Metrics Row (Compact & Responsive on Mobile) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
         <div className="apple-card rounded-2xl p-3.5 sm:p-4 border border-white/10 flex items-center gap-3 shadow-sm">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
             <MorphIcon name="users" size={18} />

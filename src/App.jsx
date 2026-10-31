@@ -10,7 +10,6 @@ import SettingsModal from './components/Settings/SettingsModal';
 export default function App() {
   const [currentPage, setCurrentPage] = useState('meeting');
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const langMenuRef = useRef(null);
 
   const {
@@ -36,39 +35,40 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-transparent text-[#f5f5f7] selection:bg-blue-500/30 selection:text-white">
+    <div className="min-h-screen w-full flex flex-col bg-transparent text-[#f5f5f7] selection:bg-blue-500/30 selection:text-white overflow-x-hidden">
       {/* Top Navbar: Apple macOS / VisionOS Frosted Glass Bar */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-white/[0.04] border-b border-white/[0.08] h-16 flex items-center px-4 sm:px-8">
-        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-between relative">
+      <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-white/[0.04] border-b border-white/[0.08] h-14 sm:h-16 flex items-center px-3 sm:px-8">
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-between relative gap-2">
           {/* Brand */}
           <div
             onClick={() => setCurrentPage('meeting')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center gap-2 cursor-pointer select-none group min-w-0"
           >
             <img
               src="/logo.png"
               alt="Meeting Translator Logo"
-              className="w-8 h-8 rounded-xl object-contain drop-shadow-[0_2px_10px_rgba(59,130,246,0.4)] group-hover:scale-105 transition-transform duration-200"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-contain drop-shadow-[0_2px_10px_rgba(59,130,246,0.4)] shrink-0 group-hover:scale-105 transition-transform duration-200"
             />
-            <span className="font-semibold text-[15px] tracking-tight text-white/90 group-hover:text-white transition-colors">
+            <span className="font-semibold text-xs sm:text-[15px] tracking-tight text-white/90 group-hover:text-white transition-colors truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
               {t('nav.brand')}
             </span>
 
             {isRecording && (
-              <div className="ml-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium tracking-wide">
+              <div className="ml-0.5 sm:ml-1 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium tracking-wide shrink-0">
                 <MorphIcon
                   name={isPaused ? 'play' : 'record'}
                   state={isPaused ? 'play' : 'recording'}
-                  size={11}
+                  size={10}
                   color="#f43f5e"
                   className={isPaused ? '' : 'animate-pulse'}
                 />
-                {isPaused ? t('nav.paused') : t('nav.recording')}
+                <span className="hidden xs:inline">{isPaused ? t('nav.paused') : t('nav.recording')}</span>
+                <span className="xs:hidden font-mono">REC</span>
               </div>
             )}
           </div>
 
-          {/* Center Nav — clean segmented pill with MorphIcons */}
+          {/* Center Nav — clean segmented pill for Tablet & Desktop */}
           <nav className="hidden sm:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 p-1 rounded-full bg-white/[0.05] border border-white/[0.08]">
             {[
               { key: 'home', label: t('nav.home'), iconName: 'home' },
@@ -91,32 +91,32 @@ export default function App() {
             ))}
           </nav>
 
-          {/* Right Action Bar: UI Language Switcher, Settings & Mobile Menu Toggle */}
-          <div className="flex items-center gap-2">
+          {/* Right Action Bar: UI Language Switcher & Settings */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* UI Language Dropdown Button */}
             <div className="relative" ref={langMenuRef}>
               <button
                 type="button"
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white/80 hover:text-white text-xs font-medium transition-all duration-200 active:scale-95 shadow-sm"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white/80 hover:text-white text-xs font-medium transition-all duration-200 active:scale-95 shadow-sm"
                 title="Thay đổi ngôn ngữ giao diện (Website UI Language)"
               >
-                <MorphIcon name="globe" size={14} className="text-blue-400" />
-                <span>{currentLangObj.flag}</span>
-                <span className="font-semibold uppercase tracking-wider text-[11px] hidden sm:inline">
+                <MorphIcon name="globe" size={13} className="text-blue-400 shrink-0" />
+                <span className="text-sm leading-none">{currentLangObj.flag}</span>
+                <span className="font-semibold uppercase tracking-wider text-[10px] sm:text-[11px] hidden xs:inline">
                   {currentLangObj.code}
                 </span>
                 <MorphIcon
                   name="chevron"
                   state={isLangMenuOpen ? 'open' : 'default'}
-                  size={12}
+                  size={11}
                   className="text-white/50"
                 />
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown Menu - Mobile Safe Positioned */}
               {isLangMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 py-1.5 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/[0.12] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 mt-2 w-44 sm:w-48 py-1.5 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/[0.12] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-3 py-1 text-[10px] font-semibold text-white/40 uppercase tracking-wider border-b border-white/[0.06] mb-1">
                     UI Language
                   </div>
@@ -154,56 +154,17 @@ export default function App() {
             <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center justify-center w-9 h-9 rounded-full text-white/60 hover:text-white hover:bg-white/[0.08] transition-all duration-200 active:scale-90"
+              className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full text-white/70 hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] transition-all duration-200 active:scale-90"
               title={t('nav.settings')}
             >
-              <MorphIcon name="sliders" size={17} />
-            </button>
-
-            {/* Mobile Hamburger Toggle Button with REAL morphicons animation (Menu <-> X) */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white/80 hover:text-white transition-all active:scale-90"
-              aria-expanded={isMobileMenuOpen}
-              title="Menu"
-            >
-              <MorphIcon name="menu-x" state={isMobileMenuOpen ? 'open' : 'default'} spring="bouncy" size={18} />
+              <MorphIcon name="sliders" size={16} />
             </button>
           </div>
         </div>
-
-        {/* Mobile Dropdown Navigation */}
-        {isMobileMenuOpen && (
-          <div className="sm:hidden absolute top-16 left-0 right-0 p-3 bg-[#1c1c1e]/95 backdrop-blur-2xl border-b border-white/10 shadow-2xl flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200 z-50">
-            {[
-              { key: 'home', label: t('nav.home'), iconName: 'home' },
-              { key: 'meeting', label: t('nav.meeting'), iconName: 'mic' },
-              { key: 'history', label: t('nav.history'), iconName: 'history' },
-            ].map(({ key, label, iconName }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setCurrentPage(key);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  currentPage === key
-                    ? 'bg-blue-600 text-white font-semibold'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <MorphIcon name={iconName} size={18} />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        )}
       </header>
 
-      {/* Main Container - Constrained and centered to prevent over-stretching */}
-      <main className="flex-1 w-full max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col">
+      {/* Main Container - Mobile optimized padding + extra bottom space for mobile tab bar */}
+      <main className="flex-1 w-full max-w-5xl xl:max-w-6xl mx-auto px-2.5 sm:px-6 lg:px-8 py-3.5 sm:py-5 pb-24 sm:pb-6 flex flex-col">
         {currentPage === 'home' && (
           <Home onStartMeeting={() => setCurrentPage('meeting')} />
         )}
@@ -214,6 +175,41 @@ export default function App() {
           <History onNavigateToMeeting={() => setCurrentPage('meeting')} />
         )}
       </main>
+
+      {/* Mobile iOS Floating Bottom Navigation Bar */}
+      <nav className="sm:hidden fixed bottom-3 inset-x-3 z-40 max-w-xs mx-auto p-1.5 rounded-full bg-[#1c1c1e]/90 backdrop-blur-2xl border border-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.6)] flex items-center justify-around">
+        {[
+          { key: 'home', label: t('nav.home'), iconName: 'home' },
+          { key: 'meeting', label: t('nav.meeting'), iconName: 'mic', isSpecial: true },
+          { key: 'history', label: t('nav.history'), iconName: 'history' },
+        ].map(({ key, label, iconName, isSpecial }) => {
+          const isActive = currentPage === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setCurrentPage(key)}
+              className={`flex-1 flex flex-col items-center justify-center py-1 px-2 rounded-full transition-all active:scale-95 relative ${
+                isActive
+                  ? 'bg-white/15 text-white font-semibold shadow-inner'
+                  : 'text-white/50 hover:text-white'
+              }`}
+            >
+              <div className="relative">
+                <MorphIcon
+                  name={iconName}
+                  size={17}
+                  className={isActive ? (isSpecial ? 'text-blue-400' : 'text-white') : 'text-slate-400'}
+                />
+                {isSpecial && isRecording && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                )}
+              </div>
+              <span className="text-[10px] mt-0.5 tracking-tight">{label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Settings Modal */}
       <SettingsModal />

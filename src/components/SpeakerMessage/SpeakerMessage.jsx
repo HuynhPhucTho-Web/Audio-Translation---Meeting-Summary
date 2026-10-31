@@ -38,19 +38,19 @@ export default function SpeakerMessage({ message, targetLanguages = ['vi'] }) {
   };
 
   return (
-    <div className="apple-card rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all shadow-sm">
+    <div className="apple-card rounded-2xl p-3 sm:p-4 border border-white/10 hover:border-white/20 transition-all shadow-sm">
       {/* Header Row */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className={`w-6 h-6 rounded-full bg-gradient-to-tr ${colorClass} border flex items-center justify-center text-[10px] font-bold shadow-sm`}>
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <div className={`w-6 h-6 rounded-full bg-gradient-to-tr ${colorClass} border flex items-center justify-center text-[10px] font-bold shadow-sm shrink-0`}>
             {message.speaker.charAt(0).toUpperCase()}
           </div>
-          <span className="font-semibold text-xs text-slate-100">{message.speaker}</span>
-          <span className="text-[10px] font-mono text-slate-400">{message.timestamp}</span>
+          <span className="font-semibold text-xs text-slate-100 truncate">{message.speaker}</span>
+          <span className="text-[10px] font-mono text-slate-400 shrink-0">{message.timestamp}</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full border ${categoryInfo.color}`}>
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          <span className={`text-[10px] font-medium px-2 sm:px-2.5 py-0.5 rounded-full border ${categoryInfo.color}`}>
             {t(`categories.${message.category}`) || categoryInfo.badge}
           </span>
 
@@ -66,9 +66,9 @@ export default function SpeakerMessage({ message, targetLanguages = ['vi'] }) {
       </div>
 
       {/* Spoken Content (Original) */}
-      <div className="text-slate-200 text-sm leading-relaxed flex items-start gap-2 pl-8">
-        <span className="text-xs opacity-80 select-none mt-0.5">{origLang.flag}</span>
-        <div className="flex-1 space-y-1 font-normal">
+      <div className="text-slate-200 text-xs sm:text-sm leading-relaxed flex items-start gap-1.5 sm:gap-2 pl-1 sm:pl-7">
+        <span className="text-xs opacity-80 select-none mt-0.5 shrink-0">{origLang.flag}</span>
+        <div className="flex-1 space-y-1 font-normal min-w-0">
           {(message.originalText || '').split('\n').map((line, idx) => (
             <p key={idx} className="leading-relaxed">"{line}"</p>
           ))}
@@ -79,10 +79,10 @@ export default function SpeakerMessage({ message, targetLanguages = ['vi'] }) {
       {showTranslation && (
         <>
           {/* Subtle Hairline Divider */}
-          <div className="my-2 ml-8 border-t border-white/[0.08]" />
+          <div className="my-1.5 sm:my-2 ml-1 sm:ml-7 border-t border-white/[0.08]" />
 
           {/* Translations */}
-          <div className="pl-8 space-y-1.5">
+          <div className="pl-1 sm:pl-7 space-y-1.5">
             {targetLanguages.map((code) => {
               const lang = getLanguageByCode(code);
               const transText = message.translations[code] || Object.values(message.translations)[0];
@@ -92,11 +92,11 @@ export default function SpeakerMessage({ message, targetLanguages = ['vi'] }) {
               return (
                 <div
                   key={code}
-                  className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl p-2 px-3 text-sm flex items-start justify-between gap-2"
+                  className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl p-2 px-2.5 sm:px-3 text-xs sm:text-sm flex items-start justify-between gap-1.5 sm:gap-2"
                 >
-                  <div className="flex items-start gap-2 flex-1 text-emerald-300">
-                    <span className="text-xs select-none mt-0.5">{lang.flag}</span>
-                    <div className="flex-1 space-y-1.5 font-medium">
+                  <div className="flex items-start gap-1.5 sm:gap-2 flex-1 min-w-0 text-emerald-300">
+                    <span className="text-xs select-none mt-0.5 shrink-0">{lang.flag}</span>
+                    <div className="flex-1 space-y-1.5 font-medium min-w-0">
                       {transLines.map((line, idx) => (
                         <p key={idx} className="leading-relaxed">"{line}"</p>
                       ))}
@@ -108,7 +108,7 @@ export default function SpeakerMessage({ message, targetLanguages = ['vi'] }) {
                     className="text-slate-400 hover:text-emerald-300 p-1 rounded-full hover:bg-emerald-500/20 transition-colors shrink-0"
                     title={t('liveSubtitle.listenVoice')}
                   >
-                    <MorphIcon name="volume" size={15} />
+                    <MorphIcon name="volume" size={14} />
                   </button>
                 </div>
               );

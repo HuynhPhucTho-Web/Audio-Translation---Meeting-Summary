@@ -63,7 +63,7 @@ export default function SettingsModal() {
       {/* Backdrop click to dismiss */}
       <div className="absolute inset-0" onClick={() => setIsSettingsOpen(false)} />
 
-      <div className="relative apple-glass w-full max-w-lg rounded-3xl border border-white/15 shadow-2xl p-5 sm:p-6 z-10 flex flex-col max-h-[85vh]">
+      <div className="relative apple-glass w-full max-w-lg rounded-3xl border border-white/15 shadow-2xl p-4 sm:p-6 z-10 flex flex-col max-h-[88vh]">
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-2.5">
@@ -129,7 +129,7 @@ export default function SettingsModal() {
                   <span className="text-[10px] text-emerald-400 font-mono">Tự động tối ưu</span>
                 </label>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {[
                     {
                       id: 'groq',
@@ -162,13 +162,18 @@ export default function SettingsModal() {
                         key={prov.id}
                         type="button"
                         onClick={() => setAiProvider(prov.id)}
-                        className={`p-2.5 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
+                        className={`p-2.5 rounded-2xl border text-left transition-all relative flex flex-row sm:flex-col items-center sm:items-start justify-between gap-2 ${
                           isSelected
                             ? 'bg-blue-600/25 border-blue-500 shadow-md ring-1 ring-blue-500/40 text-white'
                             : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white hover:bg-white/[0.07]'
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-1 mb-1">
+                        <div className="min-w-0 flex-1 sm:flex-initial sm:order-last">
+                          <div className="text-xs font-bold truncate text-slate-100">{prov.name}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{prov.sub}</div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0 sm:order-first sm:mb-1">
                           <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-mono border ${prov.badgeColor}`}>
                             {prov.badge}
                           </span>
@@ -176,8 +181,6 @@ export default function SettingsModal() {
                             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" title="Đã có khóa API" />
                           )}
                         </div>
-                        <div className="text-xs font-bold truncate text-slate-100">{prov.name}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{prov.sub}</div>
                       </button>
                     );
                   })}
@@ -472,18 +475,18 @@ export default function SettingsModal() {
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-2.5 pt-3.5 mt-3 border-t border-white/10 shrink-0">
+        <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-white/10 shrink-0">
           <button
             type="button"
             onClick={() => setIsSettingsOpen(false)}
-            className="px-4 py-2 rounded-full apple-pill text-xs font-semibold text-slate-300 hover:text-white transition-all active:scale-95"
+            className="flex-1 sm:flex-initial px-4 py-2 rounded-full apple-pill text-xs font-semibold text-slate-300 hover:text-white transition-all active:scale-95 text-center"
           >
             {t('settings.close')}
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all active:scale-95 flex items-center gap-1.5"
+            className="flex-1 sm:flex-initial px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all active:scale-95 flex items-center justify-center gap-1.5"
           >
             <MorphIcon name="shield-check" size={16} />
             <span>{savedSuccess ? t('settings.saved') : t('settings.save')}</span>

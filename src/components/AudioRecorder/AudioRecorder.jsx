@@ -454,14 +454,14 @@ export default function AudioRecorder() {
   return (
     <div className="w-full apple-glass rounded-2xl p-3 sm:px-5 sm:py-3.5 border border-white/10 shadow-xl space-y-3">
       {/* Top Bar: Mode Selector & Upload */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-white/[0.08]">
+      <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-2 pb-2 border-b border-white/[0.08]">
         {/* Meeting Type Selector (Offline vs Online) */}
-        <div className="flex items-center gap-1.5 p-0.5 rounded-full bg-black/40 border border-white/10 text-xs">
+        <div className="flex items-center gap-1 p-0.5 rounded-full bg-black/40 border border-white/10 text-xs w-full xs:w-auto">
           <button
             type="button"
             disabled={isRecording}
             onClick={() => setRecordingMode('offline')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+            className={`flex-1 xs:flex-initial flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
               recordingMode === 'offline'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white disabled:opacity-50'
@@ -469,14 +469,14 @@ export default function AudioRecorder() {
             title="Họp trực tiếp tại phòng: Kích hoạt bộ nén âm thanh, thu rõ người ngồi xa"
           >
             <MorphIcon name="mic" size={12} />
-            <span>Họp Offline (Phòng họp)</span>
+            <span>Họp Offline</span>
           </button>
 
           <button
             type="button"
             disabled={isRecording}
             onClick={() => setRecordingMode('online')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+            className={`flex-1 xs:flex-initial flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
               recordingMode === 'online'
                 ? 'bg-purple-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white disabled:opacity-50'
@@ -484,12 +484,12 @@ export default function AudioRecorder() {
             title="Họp trực tuyến: Thu âm thanh từ tab Google Meet / Zoom + Micro của bạn"
           >
             <MorphIcon name="globe" size={12} />
-            <span>Họp Online (Meet/Zoom)</span>
+            <span>Họp Online</span>
           </button>
         </div>
 
         {/* Audio File Upload Pill (Nhập file từ máy tính) */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end">
           <input
             type="file"
             ref={fileInputRef}
@@ -501,7 +501,7 @@ export default function AudioRecorder() {
             type="button"
             disabled={isRecording}
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full apple-pill hover:bg-white/15 text-[11px] font-medium text-amber-300 hover:text-white transition-all disabled:opacity-40"
+            className="flex items-center justify-center gap-1.5 px-3 py-1 rounded-full apple-pill hover:bg-white/15 text-[11px] font-medium text-amber-300 hover:text-white transition-all disabled:opacity-40"
             title="Tải lên file âm thanh sẵn có từ máy tính (.mp3, .wav, .m4a) để AI nhận diện và tóm tắt"
           >
             <MorphIcon name="arrow-up" size={12} className="text-amber-400" />
@@ -578,14 +578,14 @@ export default function AudioRecorder() {
         </div>
 
         {/* Right Side: Quick Action Pills */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-2 w-full md:w-auto justify-stretch sm:justify-end">
           {isRecording ? (
             <>
               {/* Pause / Resume Button */}
               <button
                 type="button"
                 onClick={handleTogglePause}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full apple-pill hover:bg-white/15 text-xs sm:text-sm font-semibold text-white transition-all active:scale-95"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-full apple-pill hover:bg-white/15 text-xs sm:text-sm font-semibold text-white transition-all active:scale-95"
               >
                 <MorphIcon
                   name="play-pause"
@@ -601,10 +601,10 @@ export default function AudioRecorder() {
                 type="button"
                 onClick={handleStop}
                 disabled={isProcessingAudio}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-xs sm:text-sm font-semibold text-white transition-all shadow-md active:scale-95 disabled:opacity-50"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-rose-500 hover:bg-rose-600 text-xs sm:text-sm font-semibold text-white transition-all shadow-md active:scale-95 disabled:opacity-50"
               >
                 <MorphIcon name="record" state="square" size={14} color="#ffffff" />
-                <span>{isProcessingAudio ? 'Đang chuẩn hóa file...' : t('recorder.stopAndSave')}</span>
+                <span className="truncate">{isProcessingAudio ? 'Đang xuất file...' : t('recorder.stopAndSave')}</span>
               </button>
             </>
           ) : (
@@ -617,7 +617,7 @@ export default function AudioRecorder() {
                       resetMeeting();
                     }
                   }}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full apple-pill hover:bg-rose-500/20 text-xs font-medium text-slate-300 hover:text-rose-300 transition-all active:scale-95"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full apple-pill hover:bg-rose-500/20 text-xs font-medium text-slate-300 hover:text-rose-300 transition-all active:scale-95"
                   title={t('recorder.clearSession')}
                 >
                   <MorphIcon name="trash" size={15} />
@@ -629,9 +629,9 @@ export default function AudioRecorder() {
         </div>
       </div>
 
-      {/* Lower Row: Modern Apple Audio Player (Phát lại âm thanh chuẩn WAV/WebM) */}
+      {/* Lower Row: Modern Apple Audio Player (Responsive 2-tier layout on mobile) */}
       {recordedAudioUrl && !isRecording && (
-        <div className="w-full pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
+        <div className="w-full pt-3 border-t border-white/10 flex flex-col gap-2.5 sm:gap-3 animate-fadeIn">
           {/* HTML5 Audio Element */}
           <audio
             ref={audioPlayerRef}
@@ -641,114 +641,117 @@ export default function AudioRecorder() {
             onEnded={handleAudioEnded}
           />
 
-          {/* Left: Play/Pause, Rewind, Fast-Forward & Scrub Slider */}
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:flex-1">
-            {/* Play/Pause Button */}
-            <button
-              type="button"
-              onClick={togglePlayAudio}
-              className="w-9 h-9 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 transition-all active:scale-95 shrink-0"
-              title={isPlayingAudio ? t('recorder.pause') : t('recorder.listenBack')}
-            >
-              <MorphIcon
-                name="play-pause"
-                state={isPlayingAudio ? 'playing' : 'play'}
-                size={16}
-                color="#ffffff"
-              />
-            </button>
-
-            {/* Skip -5s */}
-            <button
-              type="button"
-              onClick={() => handleSkipTime(-5)}
-              className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-slate-300 text-[10px] font-mono flex items-center justify-center transition-all shrink-0"
-              title="Lùi lại 5 giây"
-            >
-              -5s
-            </button>
-
-            {/* Skip +5s */}
-            <button
-              type="button"
-              onClick={() => handleSkipTime(5)}
-              className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/15 text-slate-300 text-[10px] font-mono flex items-center justify-center transition-all shrink-0"
-              title="Tua tới 5 giây"
-            >
-              +5s
-            </button>
-
-            {/* Speed Toggle Pill */}
-            <button
-              type="button"
-              onClick={handleCyclePlaybackRate}
-              className="px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-blue-300 text-[10px] font-mono font-bold transition-all shrink-0"
-              title="Đổi tốc độ phát lại (0.75x - 2x)"
-            >
-              {PLAYBACK_RATES[playbackRateIndex]}x
-            </button>
-
-            {/* Scrub Slider */}
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-[11px] font-mono text-slate-400 w-12 text-right shrink-0">
-                {formatTime(playbackCurrentTime)}
-              </span>
-              <input
-                type="range"
-                min="0"
-                max={
-                  Number.isFinite(playbackDuration) && playbackDuration > 0
-                    ? playbackDuration
-                    : recordingTime > 0
-                    ? recordingTime
-                    : 1
-                }
-                step="0.1"
-                value={Math.min(
-                  playbackCurrentTime,
-                  Number.isFinite(playbackDuration) && playbackDuration > 0
-                    ? playbackDuration
-                    : recordingTime > 0
-                    ? recordingTime
-                    : 1
-                )}
-                onChange={handleSeek}
-                className="flex-1 h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
-              />
-              <span className="text-[11px] font-mono text-slate-400 w-12 shrink-0">
-                {formatTime(
-                  Number.isFinite(playbackDuration) && playbackDuration > 0
-                    ? playbackDuration
-                    : recordingTime
-                )}
-              </span>
-            </div>
+          {/* Tier 1: Scrub Slider (Full width on all screens for touch accuracy) */}
+          <div className="w-full flex items-center gap-2">
+            <span className="text-[11px] font-mono text-slate-400 w-11 text-right shrink-0">
+              {formatTime(playbackCurrentTime)}
+            </span>
+            <input
+              type="range"
+              min="0"
+              max={
+                Number.isFinite(playbackDuration) && playbackDuration > 0
+                  ? playbackDuration
+                  : recordingTime > 0
+                  ? recordingTime
+                  : 1
+              }
+              step="0.1"
+              value={Math.min(
+                playbackCurrentTime,
+                Number.isFinite(playbackDuration) && playbackDuration > 0
+                  ? playbackDuration
+                  : recordingTime > 0
+                  ? recordingTime
+                  : 1
+              )}
+              onChange={handleSeek}
+              className="flex-1 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            />
+            <span className="text-[11px] font-mono text-slate-400 w-11 shrink-0">
+              {formatTime(
+                Number.isFinite(playbackDuration) && playbackDuration > 0
+                  ? playbackDuration
+                  : recordingTime
+              )}
+            </span>
           </div>
 
-          {/* Right: Direct Download Buttons (MP3 & WAV) */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Download Standard MP3 (Primary) */}
-            <button
-              type="button"
-              disabled={isConvertingMp3}
-              onClick={downloadMp3Audio}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-all active:scale-95 shadow-md shadow-blue-600/30 disabled:opacity-50"
-              title="Tải xuống trực tiếp file âm thanh MP3 chuẩn (tên file chứa đầy đủ ngày giờ, lưu thẳng vào Downloads)"
-            >
-              <MorphIcon name="download" size={14} className={isConvertingMp3 ? 'animate-bounce text-white' : 'text-white'} />
-              <span>{isConvertingMp3 ? 'Đang xuất MP3...' : 'Tải file MP3'}</span>
-            </button>
+          {/* Tier 2: Controls & Direct Download Buttons */}
+          <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
+            {/* Playback Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Play/Pause Button */}
+              <button
+                type="button"
+                onClick={togglePlayAudio}
+                className="w-9 h-9 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 transition-all active:scale-95 shrink-0"
+                title={isPlayingAudio ? t('recorder.pause') : t('recorder.listenBack')}
+              >
+                <MorphIcon
+                  name="play-pause"
+                  state={isPlayingAudio ? 'playing' : 'play'}
+                  size={16}
+                  color="#ffffff"
+                />
+              </button>
 
-            {/* Download Standard WAV */}
-            <button
-              type="button"
-              onClick={downloadWavAudio}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full apple-pill hover:bg-white/15 text-xs font-medium text-slate-200 hover:text-white transition-all active:scale-95"
-              title="Tải xuống file âm thanh chuẩn WAV 16-bit PCM chất lượng gốc (có đầy đủ ngày giờ)"
-            >
-              <MorphIcon name="download" size={13} className="text-emerald-400" />
-              <span>Tải WAV</span>
-            </button>
+              {/* Skip -5s */}
+              <button
+                type="button"
+                onClick={() => handleSkipTime(-5)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-slate-300 text-[11px] font-mono flex items-center justify-center transition-all shrink-0 active:scale-90"
+                title="Lùi lại 5 giây"
+              >
+                -5s
+              </button>
+
+              {/* Skip +5s */}
+              <button
+                type="button"
+                onClick={() => handleSkipTime(5)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-slate-300 text-[11px] font-mono flex items-center justify-center transition-all shrink-0 active:scale-90"
+                title="Tua tới 5 giây"
+              >
+                +5s
+              </button>
+
+              {/* Speed Toggle Pill */}
+              <button
+                type="button"
+                onClick={handleCyclePlaybackRate}
+                className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-blue-300 text-[11px] font-mono font-bold transition-all shrink-0 active:scale-90"
+                title="Đổi tốc độ phát lại (0.75x - 2x)"
+              >
+                {PLAYBACK_RATES[playbackRateIndex]}x
+              </button>
+            </div>
+
+            {/* Right: Direct Download Buttons (MP3 & WAV) */}
+            <div className="flex items-center gap-2">
+              {/* Download Standard MP3 (Primary) */}
+              <button
+                type="button"
+                disabled={isConvertingMp3}
+                onClick={downloadMp3Audio}
+                className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-all active:scale-95 shadow-md shadow-blue-600/30 disabled:opacity-50"
+                title="Tải xuống trực tiếp file âm thanh MP3 chuẩn (tên file chứa đầy đủ ngày giờ, lưu thẳng vào Downloads)"
+              >
+                <MorphIcon name="download" size={14} className={isConvertingMp3 ? 'animate-bounce text-white' : 'text-white'} />
+                <span>{isConvertingMp3 ? 'Đang xuất MP3...' : 'Tải file MP3'}</span>
+              </button>
+
+              {/* Download Standard WAV */}
+              <button
+                type="button"
+                onClick={downloadWavAudio}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full apple-pill hover:bg-white/15 text-xs font-medium text-slate-200 hover:text-white transition-all active:scale-95"
+                title="Tải xuống file âm thanh chuẩn WAV 16-bit PCM chất lượng gốc (có đầy đủ ngày giờ)"
+              >
+                <MorphIcon name="download" size={13} className="text-emerald-400" />
+                <span>Tải WAV</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

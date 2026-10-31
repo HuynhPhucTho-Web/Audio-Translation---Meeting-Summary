@@ -22,7 +22,7 @@ export default function History({ onNavigateToMeeting }) {
   return (
     <div className="w-full flex-1 flex flex-col space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-white/10">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10 gap-2">
         <div>
           <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
             <MorphIcon name="history" size={20} className="text-blue-400" />
@@ -32,13 +32,13 @@ export default function History({ onNavigateToMeeting }) {
             {t('history.subtitle')}
           </p>
         </div>
-        <span className="text-xs font-mono apple-pill px-3 py-1 rounded-full text-slate-300">
+        <span className="text-xs font-mono apple-pill px-3 py-1 rounded-full text-slate-300 shrink-0">
           {t('history.total')} {savedMeetings.length}
         </span>
       </div>
 
       {savedMeetings.length === 0 ? (
-        <div className="apple-glass rounded-2xl p-20 text-center border border-white/10 flex-1 flex flex-col items-center justify-center">
+        <div className="apple-glass rounded-2xl p-8 sm:p-16 text-center border border-white/10 flex-1 flex flex-col items-center justify-center">
           <div className="w-14 h-14 rounded-2xl apple-card flex items-center justify-center mb-3 text-blue-400 border border-white/10 shadow-sm">
             <MorphIcon name="folder" size={28} />
           </div>
@@ -48,7 +48,7 @@ export default function History({ onNavigateToMeeting }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto">
           {savedMeetings.map((meeting) => (
             <div
               key={meeting.id}
