@@ -4,12 +4,31 @@ import { useMeetingStore } from '../store/meetingStore';
 import { summaryService } from '../services/summaryService';
 
 export default function History({ onNavigateToMeeting }) {
-  const { savedMeetings, deleteMeetingHistory, loadMeetingFromHistory, t } = useMeetingStore();
+  const {
+    savedMeetings,
+    deleteMeetingHistory,
+    loadMeetingFromHistory,
+    showConfirmDialog,
+    t,
+  } = useMeetingStore();
 
   const handleOpen = (meeting) => {
     loadMeetingFromHistory(meeting);
     if (onNavigateToMeeting) {
       onNavigateToMeeting();
+    }
+  };
+
+  const handleDeleteMeeting = async (meetingId) => {
+    const confirmed = await showConfirmDialog({
+      title: 'Xóa cuộc họp',
+      message: t('history.deleteConfirm') || 'Bạn có chắc muốn xóa cuộc họp này khỏi lịch sử?',
+      type: 'danger',
+      confirmText: 'Xóa cuộc họp',
+      cancelText: 'Giữ lại',
+    });
+    if (confirmed) {
+      deleteMeetingHistory(meetingId);
     }
   };
 
@@ -64,11 +83,7 @@ export default function History({ onNavigateToMeeting }) {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm(t('history.deleteConfirm'))) {
-                        deleteMeetingHistory(meeting.id);
-                      }
-                    }}
+                    onClick={() => handleDeleteMeeting(meeting.id)}
                     className="text-slate-400 hover:text-rose-400 p-1 rounded-full hover:bg-white/10 transition-colors"
                     title={t('history.delete')}
                   >

@@ -13,6 +13,7 @@ export default function SettingsModal() {
     resetMeeting,
     uiLanguage,
     setUiLanguage,
+    showConfirmDialog,
     t,
   } = useMeetingStore();
 
@@ -459,8 +460,15 @@ export default function SettingsModal() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm(t('settings.resetConfirm'))) {
+                  onClick={async () => {
+                    const confirmed = await showConfirmDialog({
+                      title: 'Đặt lại phiên làm việc',
+                      message: t('settings.resetConfirm') || 'Bạn có chắc muốn làm mới toàn bộ cuộc họp hiện tại?',
+                      type: 'danger',
+                      confirmText: 'Đặt lại',
+                      cancelText: 'Hủy bỏ',
+                    });
+                    if (confirmed) {
                       resetMeeting();
                       setIsSettingsOpen(false);
                     }

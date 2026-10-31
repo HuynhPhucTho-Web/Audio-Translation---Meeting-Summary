@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Meeting from './pages/Meeting';
 import History from './pages/History';
 import SettingsModal from './components/Settings/SettingsModal';
+import DialogModal from './components/DialogModal/DialogModal';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('meeting');
@@ -213,6 +214,9 @@ export default function App() {
 
       {/* Settings Modal */}
       <SettingsModal />
+
+      {/* Global Apple Custom Dialog & Confirmation Popup */}
+      <DialogModal />
     </div>
   );
 }

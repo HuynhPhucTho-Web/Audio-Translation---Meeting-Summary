@@ -44,6 +44,8 @@ export default function AudioRecorder() {
     setRecordedAudio,
     clearRecordedAudio,
     spokenInputLanguage,
+    showConfirmDialog,
+    showAlertDialog,
   } = useMeetingStore();
 
   const timerRef = useRef(null);
@@ -176,11 +178,12 @@ export default function AudioRecorder() {
       // Try connecting backend WebSocket in parallel
       realtimeService.connect();
     } else {
-      alert(
-        `Không thể truy cập âm thanh: ${result.error}.\n` +
-        `• Nếu họp Offline: Vui lòng cấp quyền Microphone trên trình duyệt.\n` +
-        `• Nếu họp Online: Hãy chọn Tab Google Meet/Zoom và đánh dấu tích 'Chia sẻ âm thanh của thẻ'.`
-      );
+      showAlertDialog({
+        title: 'Không thể truy cập âm thanh',
+        message: `Lỗi: ${result.error}.\n• Nếu họp Offline: Vui lòng cấp quyền Microphone trên trình duyệt.\n• Nếu họp Online: Hãy chọn Tab Google Meet / Zoom và đánh dấu tích 'Chia sẻ âm thanh của thẻ'.`,
+        type: 'warning',
+        confirmText: 'Đã hiểu',
+      });
     }
   };
 
@@ -612,8 +615,15 @@ export default function AudioRecorder() {
               {transcript.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm(t('recorder.clearConfirm'))) {
+                  onClick={async () => {
+                    const confirmed = await showConfirmDialog({
+                      title: 'Xóa phiên ghi âm',
+                      message: t('recorder.clearConfirm') || 'Xóa sạch phụ đề để bắt đầu phiên mới?',
+                      type: 'danger',
+                      confirmText: 'Xóa phiên',
+                      cancelText: 'Hủy bỏ',
+                    });
+                    if (confirmed) {
                       resetMeeting();
                     }
                   }}

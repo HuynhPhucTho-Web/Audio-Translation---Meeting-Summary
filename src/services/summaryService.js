@@ -403,7 +403,12 @@ Mọi người nhất trí hướng tới mục tiêu hoàn thiện API và giao
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Vui lòng cho phép mở popup để xem bản in PDF');
+      useMeetingStore.getState().showAlertDialog({
+        title: 'Trình duyệt chặn mở cửa sổ in',
+        message: 'Trình duyệt đang chặn mở cửa sổ popup. Vui lòng cho phép mở popup trên trang web này để xem và in bản PDF cuộc họp.',
+        type: 'warning',
+        confirmText: 'Đã hiểu',
+      });
       return;
     }
 

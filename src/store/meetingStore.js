@@ -448,5 +448,71 @@ export const useMeetingStore = create((set, get) => ({
       recordingTime: meeting.duration || 0,
       activeTab: 'summary',
     });
-  }
+  },
+
+  // Modern Apple Confirm & Alert Dialog System (Thay thế toàn bộ window.confirm & alert)
+  dialogModal: null,
+
+  showConfirmDialog: ({
+    title = 'Xác nhận hành động',
+    message,
+    type = 'warning', // 'danger' | 'warning' | 'info' | 'success'
+    confirmText = 'Xác nhận',
+    cancelText = 'Hủy',
+  }) => {
+    return new Promise((resolve) => {
+      set({
+        dialogModal: {
+          isOpen: true,
+          title,
+          message,
+          type,
+          confirmText,
+          cancelText,
+          onConfirm: () => {
+            set({ dialogModal: null });
+            resolve(true);
+          },
+          onCancel: () => {
+            set({ dialogModal: null });
+            resolve(false);
+          },
+        },
+      });
+    });
+  },
+
+  showAlertDialog: ({
+    title = 'Thông báo',
+    message,
+    type = 'info', // 'danger' | 'warning' | 'info' | 'success'
+    confirmText = 'Đã hiểu',
+  }) => {
+    return new Promise((resolve) => {
+      set({
+        dialogModal: {
+          isOpen: true,
+          title,
+          message,
+          type,
+          confirmText,
+          cancelText: null, // No cancel button for alerts
+          onConfirm: () => {
+            set({ dialogModal: null });
+            resolve(true);
+          },
+          onCancel: () => {
+            set({ dialogModal: null });
+            resolve(true);
+          },
+        },
+      });
+    });
+  },
+
+  closeDialogModal: () => {
+    const current = get().dialogModal;
+    if (current?.onCancel) current.onCancel();
+    set({ dialogModal: null });
+  },
 }));
